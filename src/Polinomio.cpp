@@ -1,20 +1,5 @@
 #include "../include/Polinomio.h"
 
-std::vector<short> Polinomio::Multiplicar_Polinomios(std::vector<short> polinomio1, std::vector<short> polinomio2) {
-    // Inicializar el vector resultado con ceros, su tamaño es la suma de los grados de los dos polinomios menos uno
-    std::vector<short> resultado(polinomio1.size() + polinomio2.size() - 1, 0);
-
-    // Multiplicar cada coeficiente de polinomio1 por cada coeficiente de polinomio2
-    for (size_t i = 0; i < polinomio1.size(); ++i) {
-        for (size_t j = 0; j < polinomio2.size(); ++j) {
-            // Sumar el producto de los coeficientes correspondientes al lugar apropiado en el vector resultado
-            resultado[i + j] += polinomio1[i] * polinomio2[j];
-        }
-    }
-
-    // Devolver el polinomio resultante de la multiplicación
-    return resultado;
-}
 
 std::pair<std::vector<short>, std::vector<short>> Polinomio::Dividir_Polinomio(std::vector<short> numerador, std::vector<short> denominador) {
     std::vector<short> cociente, residuo;
@@ -85,6 +70,23 @@ short Polinomio::Evaluar_Polinomio(std::vector<short> coeficientes, short expone
     }
     return resultado;
 }
+
+std::vector<short> Polinomio::Multiplicar_Polinomios(std::vector<short> polinomio1, std::vector<short> polinomio2) {
+    // Inicializar el vector resultado con ceros, su tamaño es la suma de los grados de los dos polinomios menos uno
+    std::vector<short> resultado(polinomio1.size() + polinomio2.size() - 1, 0);
+
+    // Multiplicar cada coeficiente de polinomio1 por cada coeficiente de polinomio2
+    for (size_t i = 0; i < polinomio1.size(); ++i) {
+        for (size_t j = 0; j < polinomio2.size(); ++j) {
+            // Sumar el producto de los coeficientes correspondientes al lugar apropiado en el vector resultado
+            resultado[i + j] += polinomio1[i] * polinomio2[j];
+        }
+    }
+
+    // Devolver el polinomio resultante de la multiplicación
+    return resultado;
+}
+
 
 std::vector<short> Polinomio::Restar_Polinomios(std::vector<short> minuendo, std::vector<short> sustraendo) {
     size_t maxGrado = std::max(minuendo.size(), sustraendo.size());
