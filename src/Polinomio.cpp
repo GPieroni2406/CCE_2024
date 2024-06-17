@@ -64,6 +64,7 @@ std::vector<short> Polinomio::Derivar_Polinomio(std::vector<short> coeficientes)
 }
 
 short Polinomio::Evaluar_Polinomio(std::vector<short> coeficientes, short exponente) {
+    
     short resultado = 0;
     for (size_t indice = 0; indice < coeficientes.size(); ++indice) {
         resultado = calc.Suma(resultado, calc.Mult(coeficientes[indice], _gfalog[exponente * indice % (calc.Obtener_q())]));
