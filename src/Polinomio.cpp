@@ -64,7 +64,7 @@ std::vector<short> Polinomio::Derivar_Polinomio(std::vector<short> coeficientes)
 }
 
 short Polinomio::Evaluar_Polinomio(std::vector<short> coeficientes, short exponente) {
-    
+
     short resultado = 0;
     for (size_t indice = 0; indice < coeficientes.size(); ++indice) {
         resultado = calc.Suma(resultado, calc.Mult(coeficientes[indice], _gfalog[exponente * indice % (calc.Obtener_q())]));
@@ -97,9 +97,12 @@ std::vector<short> Polinomio::Restar_Polinomios(std::vector<short> minuendo, std
     sustraendo.resize(maxGrado, 0);
 
     std::vector<short> diferencia(maxGrado);
+
+    
     for (size_t i = 0; i < maxGrado; ++i) {
         diferencia[i] = minuendo[i] - sustraendo[i];
     }
+
 
     // Eliminar ceros al final del resultado
     while (!diferencia.empty() && diferencia.back() == 0) {
