@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>  
-#include "../include/Decoder.h"
+#include "../include/Decodificador.h"
 #include "../include/ManejadorDeArchivos.h"
 using namespace std;
 

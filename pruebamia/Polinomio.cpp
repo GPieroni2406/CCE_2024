@@ -1,5 +1,4 @@
-#include "../include/Polinomio.h"
-
+#include "Polinomio.h"
 
 std::vector<short> Polinomio::CalcularCociente(const std::vector<short> &numerador, std::vector<short> denominador) {
     std::vector<short> cociente;

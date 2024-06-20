@@ -1,5 +1,6 @@
-#include "../include/Decoder.h"
 #include <algorithm>
+#include "../include/Decodificador.h"
+
 
 vector<short> Decoder::LeerBloque(ifstream &archivo, const int &n) {
     // Calcular la cantidad de bytes a leer
@@ -12,8 +13,8 @@ vector<short> Decoder::LeerBloque(ifstream &archivo, const int &n) {
     archivo.seekg(desplazamiento, ios::beg);
 
     // Leer el bloque de datos
-    vector<short> buffer(n);
-    archivo.read(reinterpret_cast<char*>(buffer.data()), bytesALeer);
+    vector<short> datos(n);
+    archivo.read(reinterpret_cast<char*>(datos.data()), bytesALeer);
 
     // Verificar si se leyeron todos los bytes esperados
     if (archivo.gcount() < static_cast<streamsize>(bytesALeer)) {
@@ -25,8 +26,9 @@ vector<short> Decoder::LeerBloque(ifstream &archivo, const int &n) {
     // Incrementar el contador de bloques leídos
     IncrementoBloque();
 
-    return buffer;
+    return datos;
 }
+
 
 
 vector<short> Decoder::EncontrarBorraduras(ifstream &archivo, const int &n) {
@@ -174,34 +176,33 @@ bool Decoder::BloqIncorregible(vector<short> indicesBorrados) {
 
 
 
-pair<vector<short>, vector<short>> Decoder::Euclides(const vector<short> &primer_polinomio, const vector<short> &segundo_polinomio) {
+std::pair<std::vector<short>, std::vector<short>> Decoder::Euclides(const std::vector<short> &primer_polinomio, const std::vector<short> &segundo_polinomio) {
     // Calcular el límite según la fórmula dada
     double limite = (this->r + this->rho) / 2.0;
 
     // Inicializar variables
-    vector<short> s_previous = {0};   // s_previous = 0
-    vector<short> r_previous = segundo_polinomio;  // r_previous = segundo_polinomio
-    vector<short> s_current = {1};    // s_current = 1
-    vector<short> r_current = primer_polinomio;    // r_current = primer_polinomio
+    std::vector<short> s_anterior = {0};   // s_anterior = 0
+    std::vector<short> r_anterior = segundo_polinomio;  // r_anterior = segundo_polinomio
+    std::vector<short> s_actual = {1};    // s_actual = 1
+    std::vector<short> r_actual = primer_polinomio;    // r_actual = primer_polinomio
 
     // Algoritmo extendido de Euclides
-    while (!(r_current.size() - 1 < limite && limite <= r_previous.size() - 1)) {
-        // Dividir r_previous entre r_current
-        auto division_result = pol.Dividir_Polinomio(r_previous, r_current);
-        vector<short> quotient = division_result.first;
-        r_previous = r_current;
-        r_current = division_result.second;
+    while (!(r_actual.size() - 1 < limite && limite <= r_anterior.size() - 1)) {
+        // Calcular cociente y residuo de r_anterior entre r_actual
+        std::vector<short> cociente = pol.CalcularCociente(r_anterior, r_actual);
+        std::vector<short> nuevo_r_anterior = r_actual;
+        r_actual = pol.CalcularResiduo(r_anterior, r_actual);
+        r_anterior = nuevo_r_anterior;
 
-        // Actualizar s_previous y s_current
-        vector<short> temp_s = s_previous;
-        s_previous = s_current;
-        s_current = pol.Restar_Polinomios(temp_s, pol.Multiplicar_Polinomios(quotient, s_current));
+        // Actualizar s_anterior y s_actual
+        std::vector<short> temp_s = s_anterior;
+        s_anterior = s_actual;
+        s_actual = pol.Restar_Polinomios(temp_s, pol.Multiplicar_Polinomios(cociente, s_actual));
     }
 
     // Retornar el resultado
-    return make_pair(s_current, r_current);
+    return std::make_pair(s_actual, r_actual);
 }
-
 
 
 
@@ -286,12 +287,12 @@ vector<short> Decoder::RaicesNoNulasChien(const vector<short> &polinomio) {
 
 
 
-vector<short> Decoder::CalcularSindromeModificado(const vector<short> &polinomioSindrome, const vector<short> &localizadorBorrado) {
+std::vector<short> Decoder::CalcularSindromeModificado(const std::vector<short> &polinomioSindrome, const std::vector<short> &localizadorBorrado) {
     // Realizar la multiplicación de polinomios entre síndrome y localizador de borrado
-    vector<short> producto = pol.Multiplicar_Polinomios(polinomioSindrome, localizadorBorrado);
+    std::vector<short> producto = pol.Multiplicar_Polinomios(polinomioSindrome, localizadorBorrado);
 
-    // Dividir el polinomio resultante por el polinomio generador xr y obtener el residuo
-    vector<short> residuoDivision = pol.Dividir_Polinomio(producto, this->xr).second;
+    // Obtener el residuo de la división del polinomio resultante por el polinomio generador xr
+    std::vector<short> residuoDivision = pol.CalcularResiduo(producto, this->xr);
 
     // Devolver el residuo calculado
     return residuoDivision;
