@@ -89,10 +89,9 @@ vector<short> Decodificador::LeerBloqueSimbolos(ifstream &symbolfile) {
 
 
 vector<short> Decodificador::LeerIndiceSimbolos(ifstream &erasfile) {
-    // Llamar a la función EncontrarBorraduras para obtener los índices de símbolos borrados
-    return EncontrarBorraduras(erasfile, this->n);
+    vector<short> borraduras = EncontrarBorraduras(erasfile, this->n);
+    return borraduras;
 }
-
 
 
 vector<vector<short>> Decodificador::ObtenerMatrizChequeo() {

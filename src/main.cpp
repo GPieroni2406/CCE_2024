@@ -16,19 +16,64 @@ void imprimirTiempos(std::chrono::seconds secondsDuration,int corregidos,int inc
 }
 
 
-bool Incorregible(const vector<short> indexErasures, Decodificador deco){
-    if (deco.BloqIncorregible(indexErasures)){
+bool Incorregible(const vector<short> indiceBorraduras, Decodificador deco){
+    if (deco.BloqIncorregible(indiceBorraduras)){
         return true;
     }
     else return false;
 }
 
-vector<short> CalcularSindrome(const vector<short> y,const vector<vector<short>> ObtenerMatrizChequeo, Decodificador deco){
-    vector<short> sindrome = deco.CalcSindromePolinomial(y, ObtenerMatrizChequeo); 
+vector<short> CalcularSindrome(const vector<short> y,const vector<vector<short>> matrizParidad, Decodificador deco){
+    vector<short> sindrome = deco.CalcSindromePolinomial(y, matrizParidad); 
     return sindrome;
 }
 
+void ImprimirContenidoArchivo(std::ifstream& file) {
+    // Verificar si el flujo de archivo es válido y si se ha abierto correctamente
+    if (!file.is_open() || file.fail()) {
+        std::cerr << "El flujo de archivo no está abierto o está en un estado de error." << std::endl;
+        return;
+    }
 
+    // Guardar la posición actual del puntero de lectura
+    std::streampos currentPos = file.tellg();
+
+    // Limpiar los flags de error y mover el puntero al inicio del archivo
+    file.clear();
+    file.seekg(0, std::ios::beg);
+
+    // Leer y mostrar el contenido del archivo
+    std::string line;
+    while (std::getline(file, line)) {
+        std::cout << line << std::endl;
+    }
+
+    // Restaurar la posición del puntero de lectura
+    file.clear();
+    file.seekg(currentPos);
+}
+
+void ImprimirVector(const std::vector<short>& vec) {
+    for (short val : vec) {
+        std::cout << val << ' ';
+    }
+    std::cout << std::endl;
+}
+
+void ImprimirMatrizParidad(const std::vector<std::vector<short>>& vec) {
+    for (const auto& subVec : vec) {
+        for (short val : subVec) {
+            std::cout << val << ' ';
+        }
+        std::cout << std::endl; // Salto de línea después de cada sub-vector
+    }
+}
+
+typedef struct {
+    char fileType[4];   // Example header field: 4-byte file type
+    int version;        // Example header field: version number
+    int recordCount;    // Example header field: number of records
+} Header;
 
 int main(int argc, char *argv[]) {     
    
@@ -37,7 +82,7 @@ int main(int argc, char *argv[]) {
     
     //POR DEFECTO DEJO LOS PATHS
     string symbolFilePath = "misdatos.ech"; 
-    string erasFilePath = "misdatos.eras"; 
+    string erasFilePath = "misdatos.txt"; 
     string outputFilePath = "salida.dat";
    
     bool verificarPrecondiciones = archivos.ProcesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
@@ -46,16 +91,18 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    bool abrirArch = archivos.AbrirArchivos(symbolFilePath, erasFilePath, outputFilePath);
+    bool abrir = archivos.AbrirArchivos(symbolFilePath, erasFilePath, outputFilePath);
     // Intentar abrir los archivos
-    if (!abrirArch) {
+    if (!abrir) {
         return 0;
     }
     // Obtener los flujos de archivo a través del manejador
     std::ifstream& sfile = archivos.GetSymbolFile();
     std::ifstream& efile = archivos.GetErasureFile();
     std::ofstream& outputFile = archivos.GetOutputFile();
-    
+
+    ImprimirContenidoArchivo(efile);
+
     auto inicioReloj = chrono::high_resolution_clock::now();
     Decodificador deco = Decodificador(n, r);
 
@@ -65,21 +112,20 @@ int main(int argc, char *argv[]) {
     int correctos = 0;
 
     vector<short> y = deco.LeerBloqueSimbolos(sfile);
-    vector<vector<short>> ObtenerMatrizChequeo = deco.ObtenerMatrizChequeo();
-    
+    vector<vector<short>> matrizParidad = deco.ObtenerMatrizChequeo();
     while (!y.empty()) {
 
         vector<short> yDecodificado = y;
-        vector<short> indexErasures = deco.LeerIndiceSimbolos(efile);
+        vector<short> indiceBorraduras = deco.LeerIndiceSimbolos(efile);
         
-        if(Incorregible(indexErasures,deco)){
+        if(Incorregible(indiceBorraduras,deco)){
             incorregibles++;
         }
         else {
             vector<short> syndromePolynomial; 
-            syndromePolynomial = CalcularSindrome(y,ObtenerMatrizChequeo,deco);
+            syndromePolynomial = CalcularSindrome(y,matrizParidad,deco);
             if (!syndromePolynomial.empty()){
-                vector<short> erasureLocatorPolynomial = deco.CalcularPolBorraduras(indexErasures); 
+                vector<short> erasureLocatorPolynomial = deco.CalcularPolBorraduras(indiceBorraduras); 
 
                 vector<short> modifiedSyndromePolynomial = deco.CalcularSindromeModificado(syndromePolynomial, erasureLocatorPolynomial); 
                
