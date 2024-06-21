@@ -36,12 +36,12 @@ int main(int argc, char *argv[]) {
     ManejadorDeArchivos archivos;
     
     //POR DEFECTO DEJO LOS PATHS
-    string symbolFilePath = "utils/misdatos.ech"; 
-    string erasFilePath = "utils/misdatos.eras"; 
-    string outputFilePath = "utils/salida.dat";
+    string symbolFilePath = "misdatos.ech"; 
+    string erasFilePath = "misdatos.eras"; 
+    string outputFilePath = "salida.dat";
    
     bool verificarPrecondiciones = archivos.ProcesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
-
+    
     if (!verificarPrecondiciones) {
         return 0;
     }
