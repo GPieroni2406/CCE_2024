@@ -1,5 +1,5 @@
 #include <algorithm>
-#include "../include/Decodificador.h"
+#include "Decodificador.h"
 
 
 vector<short> Decodificador::LeerBloque(ifstream &archivo, const int &n) {

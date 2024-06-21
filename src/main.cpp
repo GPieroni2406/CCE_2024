@@ -16,14 +16,14 @@ void imprimirTiempos(std::chrono::seconds secondsDuration,int corregidos,int inc
 }
 
 
-bool Incorregible(const vector<short> indexErasures, Decoder deco){
+bool Incorregible(const vector<short> indexErasures, Decodificador deco){
     if (deco.BloqIncorregible(indexErasures)){
         return true;
     }
     else return false;
 }
 
-vector<short> CalcularSindrome(const vector<short> y,const vector<vector<short>> ObtenerMatrizChequeo, Decoder deco){
+vector<short> CalcularSindrome(const vector<short> y,const vector<vector<short>> ObtenerMatrizChequeo, Decodificador deco){
     vector<short> sindrome = deco.CalcSindromePolinomial(y, ObtenerMatrizChequeo); 
     return sindrome;
 }
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     std::ofstream& outputFile = archivos.GetOutputFile();
     
     auto inicioReloj = chrono::high_resolution_clock::now();
-    Decoder deco = Decoder(n, r);
+    Decodificador deco = Decodificador(n, r);
 
     int totales = 0;
     int corregidos = 0;
