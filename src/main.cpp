@@ -31,13 +31,15 @@ vector<short> CalcularSindrome(const vector<short> y,const vector<vector<short>>
 
 
 int main(int argc, char *argv[]) {     
+   
     int n,r;
     ManejadorDeArchivos archivos;
+    
     //POR DEFECTO DEJO LOS PATHS
-    string symbolFilePath = "pruebas/codificados.ech"; 
-    string erasFilePath = "pruebas/codificados.eras"; 
-    string outputFilePath = "pruebas/output.dat";
-
+    string symbolFilePath = "utils/misdatos.ech"; 
+    string erasFilePath = "utils/misdatos.eras"; 
+    string outputFilePath = "utils/salida.dat";
+   
     bool verificarPrecondiciones = archivos.ProcesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
 
     if (!verificarPrecondiciones) {
