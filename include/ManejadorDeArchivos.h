@@ -15,14 +15,14 @@ private:
 
 public:
     ManejadorDeArchivos();
-    bool AbrirArchivos(const std::string& symbolFilePath, const std::string& erasureFilePath, const std::string& outputFilePath);
-    std::ifstream& GetSymbolFile();
-    std::ifstream& GetErasureFile();
-    std::ofstream& GetOutputFile();
-    void ImprimirMensajeDeAyuda();
-    void ImprimirErrorEspecifico(const std::string& mensaje);
-    bool ProcesarArgumentos(int &n, int &r, std::string &symbolfile, std::string &erasfile, std::string &outputfile, int argc, char *argv[]);
-    void CerrarArchivos();
+    bool abrirArchivos(const std::string& symbolFilePath, const std::string& erasureFilePath, const std::string& outputFilePath);
+    std::ifstream& getSymbolFile();
+    std::ifstream& getErasureFile();
+    std::ofstream& getOutputFile();
+    void imprimirMensajeDeAyuda();
+    void imprimirErrorEspecifico(const std::string& mensaje);
+    bool procesarArgumentos(int &n, int &r, std::string &symbolfile, std::string &erasfile, std::string &outputfile, int argc, char *argv[]);
+    void cerrarArchivos();
 };
 
 #endif // MANEJADORDEARCHIVOS_H

@@ -2,7 +2,20 @@
 #include "../include/Decodificador.h"
 
 
-vector<short> Decodificador::LeerBloque(ifstream &archivo, const int &n) {
+Decodificador::Decodificador(const int &n, const int &r) {
+    // Inicializar variables miembro
+    this->n = n;
+    this->r = r;
+    this->cantBloquesLeidos = 0;
+
+    // Inicializar vector xr
+    this->xr.resize(r + 1); // El tamaño del vector xr es r + 1
+    for (int i = 0; i <= r; ++i) {
+        this->xr[i] = (i == r) ? 1 : 0;
+    }
+}
+
+vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
     // Calcular la cantidad de bytes a leer
     int bytesALeer = n; // Cada símbolo representa 1 byte
 
@@ -21,17 +34,13 @@ vector<short> Decodificador::LeerBloque(ifstream &archivo, const int &n) {
         return {}; // Devolver vector vacío si no se leyeron todos los datos
     }
 
-    // No es necesario intercambiar los bytes porque cada símbolo representa 1 byte
-
     // Incrementar el contador de bloques leídos
-    IncrementoBloque();
+    incrementoBloque();
 
     return datos;
 }
 
-
-
-vector<short> Decodificador::EncontrarBorraduras(ifstream &archivo, const int &n) {
+vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n) {
     vector<short> indices;
 
     // Calcular la cantidad de bytes a leer
@@ -55,47 +64,28 @@ vector<short> Decodificador::EncontrarBorraduras(ifstream &archivo, const int &n
     return indices;
 }
 
-
-Decodificador::Decodificador(const int &n, const int &r) {
-    // Inicializar variables miembro
-    this->n = n;
-    this->r = r;
-    this->cantBloquesLeidos = 0;
-
-    // Inicializar vector xr
-    this->xr.resize(r + 1); // El tamaño del vector xr es r + 1
-    for (int i = 0; i <= r; ++i) {
-        this->xr[i] = (i == r) ? 1 : 0;
-    }
-}
-
-void Decodificador::IncrementoBloque() {
+void Decodificador::incrementoBloque() {
     // Incrementar el contador de bloques leídos
     ++this->cantBloquesLeidos;
 }
 
-vector<short> Decodificador::ObtenerPolinomioXR() {
+vector<short> Decodificador::obtenerPolinomioXR() {
     // Devolver una copia del vector xr
     vector<short> copiaXR(this->xr.begin(), this->xr.end());
     return copiaXR;
 }
 
-
-vector<short> Decodificador::LeerBloqueSimbolos(ifstream &symbolfile) {
-    // Llamar a la función LeerBloque para leer el bloque de símbolos
-    return LeerBloque(symbolfile, this->n);
+vector<short> Decodificador::leerBloqueSimbolos(ifstream &symbolfile) {
+    // Llamar a la función leerBloque para leer el bloque de símbolos
+    return leerBloque(symbolfile, this->n);
 }
 
-
-
-vector<short> Decodificador::LeerIndiceSimbolos(ifstream &erasfile) {
-    // Llamar a la función EncontrarBorraduras para obtener los índices de símbolos borrados
-    return EncontrarBorraduras(erasfile, this->n);
+vector<short> Decodificador::leerIndiceSimbolos(ifstream &erasfile) {
+    // Llamar a la función encontrarBorraduras para obtener los índices de símbolos borrados
+    return encontrarBorraduras(erasfile, this->n);
 }
 
-
-
-vector<vector<short>> Decodificador::ObtenerMatrizChequeo() {
+vector<vector<short>> Decodificador::obtenerMatrizChequeo() {
     // Crear la matriz de control de paridad
     vector<vector<short>> matrizDeParidad(this->r, vector<short>(this->n));
 
@@ -111,16 +101,13 @@ vector<vector<short>> Decodificador::ObtenerMatrizChequeo() {
     return matrizDeParidad;
 }
 
-
-
-
-vector<short> Decodificador::CalcSindromePolinomial(const vector<short> &symbols, const vector<vector<short>> &H) {
+vector<short> Decodificador::calcSindromePolinomial(const vector<short> &symbols, const vector<vector<short>> &H) {
     vector<short> sindrome(this->r, 0);
 
     // Calcular el polinomio de síndrome
     for (int i = 0; i < this->r; ++i) {
         for (int j = 0; j < this->n; ++j) {
-            sindrome[i] = calc.Suma(sindrome[i], calc.Mult(symbols[j], H[i][j]));
+            sindrome[i] = calc.suma(sindrome[i], calc.mult(symbols[j], H[i][j]));
         }
     }
 
@@ -133,10 +120,7 @@ vector<short> Decodificador::CalcSindromePolinomial(const vector<short> &symbols
     return sindrome;
 }
 
-
-
-
-vector<short> Decodificador::CalcularPolBorraduras(const vector<short> &indicesBorrados) {
+vector<short> Decodificador::calcularPolBorraduras(const vector<short> &indicesBorrados) {
     // Polinomio inicializado como 1
     vector<short> polinomioBorraduras = {1};
 
@@ -146,18 +130,16 @@ vector<short> Decodificador::CalcularPolBorraduras(const vector<short> &indicesB
         short coeficiente = _gfalog[indice];
 
         // Polinomio (1 - α^indice)
-        vector<short> factor = {calc.Resta(0, coeficiente), 1};
+        vector<short> factor = {calc.resta(0, coeficiente), 1};
 
         // Multiplicación de polinomios
-        polinomioBorraduras = pol.Multiplicar_Polinomios(polinomioBorraduras, factor);
+        polinomioBorraduras = pol.multiplicarPolinomios(polinomioBorraduras, factor);
     }
 
     return polinomioBorraduras;
 }
 
-
-
-bool Decodificador::BloqIncorregible(vector<short> indicesBorrados) {
+bool Decodificador::bloqIncorregible(vector<short> indicesBorrados) {
     // Calcular la cantidad de índices de borrado
     int cantBorrados = static_cast<int>(indicesBorrados.size());
     
@@ -174,67 +156,60 @@ bool Decodificador::BloqIncorregible(vector<short> indicesBorrados) {
     return bloqueIncorregible;
 }
 
-
-
-std::pair<std::vector<short>, std::vector<short>> Decodificador::Euclides(const std::vector<short> &primer_polinomio, const std::vector<short> &segundo_polinomio) {
+pair<vector<short>, vector<short>> Decodificador::euclides(const vector<short> &primerPolinomio, const vector<short> &segundoPolinomio) {
     // Calcular el límite según la fórmula dada
     double limite = (this->r + this->rho) / 2.0;
 
     // Inicializar variables
-    std::vector<short> s_anterior = {0};   // s_anterior = 0
-    std::vector<short> r_anterior = segundo_polinomio;  // r_anterior = segundo_polinomio
-    std::vector<short> s_actual = {1};    // s_actual = 1
-    std::vector<short> r_actual = primer_polinomio;    // r_actual = primer_polinomio
+    vector<short> s_anterior = {0};   // s_anterior = 0
+    vector<short> r_anterior = segundoPolinomio;  // r_anterior = segundoPolinomio
+    vector<short> s_actual = {1};    // s_actual = 1
+    vector<short> r_actual = primerPolinomio;    // r_actual = primerPolinomio
 
     // Algoritmo extendido de Euclides
     while (!(r_actual.size() - 1 < limite && limite <= r_anterior.size() - 1)) {
         // Calcular cociente y residuo de r_anterior entre r_actual
-        std::vector<short> cociente = pol.CalcularCociente(r_anterior, r_actual);
-        std::vector<short> nuevo_r_anterior = r_actual;
-        r_actual = pol.CalcularResiduo(r_anterior, r_actual);
+        vector<short> cociente = pol.calcularCociente(r_anterior, r_actual);
+        vector<short> nuevo_r_anterior = r_actual;
+        r_actual = pol.calcularResiduo(r_anterior, r_actual);
         r_anterior = nuevo_r_anterior;
 
         // Actualizar s_anterior y s_actual
-        std::vector<short> temp_s = s_anterior;
+        vector<short> temp_s = s_anterior;
         s_anterior = s_actual;
-        s_actual = pol.Restar_Polinomios(temp_s, pol.Multiplicar_Polinomios(cociente, s_actual));
+        s_actual = pol.restarPolinomios(temp_s, pol.multiplicarPolinomios(cociente, s_actual));
     }
 
     // Retornar el resultado
-    return std::make_pair(s_actual, r_actual);
+    return make_pair(s_actual, r_actual);
 }
 
-
-
-
-pair<vector<short>, vector<short>> Decodificador::Forneys(const vector<short> &raices_polinomio_localizador_errores, const vector<short> &polinomio_localizador_errores, const vector<short> &polinomio_evaluador_errores) {
-    vector<short> valores_errores;
-    vector<short> ubicaciones_errores;
-    vector<short> derivada = pol.Derivar_Polinomio(polinomio_localizador_errores);
+pair<vector<short>, vector<short>> Decodificador::forneys(const vector<short> &raicesPolinomioLocalizadorErrores, const vector<short> &polinomioLocalizadorErrores, const vector<short> &polinomioEvaluadorErrores) {
+    vector<short> valoresErrores;
+    vector<short> ubicacionesErrores;
+    vector<short> derivada = pol.derivarPolinomio(polinomioLocalizadorErrores);
 
     // Si no hay raíces en el polinomio localizador de errores, devolver listas vacías
-    if (raices_polinomio_localizador_errores.empty()) {
-        return make_pair(valores_errores, ubicaciones_errores);
+    if (raicesPolinomioLocalizadorErrores.empty()) {
+        return make_pair(valoresErrores, ubicacionesErrores);
     }
     
     // Calcular valores y ubicaciones de los errores
-    for (short raiz : raices_polinomio_localizador_errores) {
+    for (short raiz : raicesPolinomioLocalizadorErrores) {
         // Calcular valor del error
-        short valor_error = calc.Mult(calc.Obtener_q(), calc.Division(pol.Evaluar_Polinomio(polinomio_evaluador_errores, raiz), pol.Evaluar_Polinomio(derivada, raiz)));
-        valores_errores.push_back(valor_error);
+        short valorError = calc.mult(calc.obtener_q(), calc.division(pol.evaluarPolinomio(polinomioEvaluadorErrores, raiz), pol.evaluarPolinomio(derivada, raiz)));
+        valoresErrores.push_back(valorError);
 
         // Calcular ubicación del error
-        short ubicacion_error = (calc.Obtener_q() - raiz) % calc.Obtener_q();
-        ubicaciones_errores.push_back(ubicacion_error);
+        short ubicacionError = (calc.obtener_q() - raiz) % calc.obtener_q();
+        ubicacionesErrores.push_back(ubicacionError);
     }
     
     // Devolver valores y ubicaciones de los errores encontrados
-    return make_pair(valores_errores, ubicaciones_errores);
+    return make_pair(valoresErrores, ubicacionesErrores);
 }
 
-
-
-vector<short> Decodificador::Decodificar(const vector<short> &palabraRecibida, const vector<short> &ubicacionesErrores, const vector<short> &valoresErrores) {
+vector<short> Decodificador::decodificar(const vector<short> &palabraRecibida, const vector<short> &ubicacionesErrores, const vector<short> &valoresErrores) {
     vector<short> palabraDecodificada = palabraRecibida;
 
     // Corregir errores en las ubicaciones especificadas
@@ -242,30 +217,29 @@ vector<short> Decodificador::Decodificar(const vector<short> &palabraRecibida, c
         size_t indice = ubicacionesErrores[i];
         if (indice < palabraRecibida.size()) {
             size_t posicion = this->n - indice - 1;
-            palabraDecodificada[posicion] = calc.Resta(palabraRecibida[posicion], valoresErrores[i]);
+            palabraDecodificada[posicion] = calc.resta(palabraRecibida[posicion], valoresErrores[i]);
         }
     }
 
     return palabraDecodificada;
 }
 
-vector<short> Decodificador::ObtenerPolinomioLocalizador(const vector<short> &polinomio_borrados, const vector<short> &polinomio_errores) {
+vector<short> Decodificador::obtenerPolinomioLocalizador(const vector<short> &polinomioBorrados, const vector<short> &polinomioErrores) {
     // Multiplicar los polinomios localizadores de borrados y errores
-    return pol.Multiplicar_Polinomios(polinomio_borrados, polinomio_errores);
+    return pol.multiplicarPolinomios(polinomioBorrados, polinomioErrores);
 }
 
-
-
-vector<short> Decodificador::RaicesNoNulasChien(const vector<short> &polinomio) {
-    vector<short> indicesRaices;   // Índices de las raíces no nulas
+vector<short> Decodificador::raicesNoNulas(const vector<short> &polinomio) {
     int contadorRaices = 0; // Contador de raíces encontradas
+    vector<short> indicesRaices;   // Índices de las raíces no nulas
+    
     int gradoPolinomio = (int)polinomio.size() - 1; // Grado del polinomio
 
     // Buscar raíces no nulas del polinomio en el campo GF(256)
     if (!polinomio.empty()) {
         for (int i = 1; i < 256; i++) {
             if (contadorRaices < gradoPolinomio) {
-                if (pol.Evaluar_Polinomio(polinomio, i) == 0) {
+                if (pol.evaluarPolinomio(polinomio, i) == 0) {
                     indicesRaices.push_back(i);
                     contadorRaices++;
                 }
@@ -284,16 +258,13 @@ vector<short> Decodificador::RaicesNoNulasChien(const vector<short> &polinomio) 
     }
 }
 
-
-
-
-std::vector<short> Decodificador::CalcularSindromeModificado(const std::vector<short> &polinomioSindrome, const std::vector<short> &localizadorBorrado) {
+vector<short> Decodificador::calcularSindromeModificado(const vector<short> &polinomioSindrome, const vector<short> &localizadorBorrado) {
     // Realizar la multiplicación de polinomios entre síndrome y localizador de borrado
-    std::vector<short> producto = pol.Multiplicar_Polinomios(polinomioSindrome, localizadorBorrado);
+    vector<short> producto = pol.multiplicarPolinomios(polinomioSindrome, localizadorBorrado);
 
     // Obtener el residuo de la división del polinomio resultante por el polinomio generador xr
-    std::vector<short> residuoDivision = pol.CalcularResiduo(producto, this->xr);
+    vector<short> residuodivision = pol.calcularResiduo(producto, this->xr);
 
     // Devolver el residuo calculado
-    return residuoDivision;
+    return residuodivision;
 }

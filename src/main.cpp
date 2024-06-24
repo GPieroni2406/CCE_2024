@@ -7,7 +7,7 @@
 #include "../include/ManejadorDeArchivos.h"
 using namespace std;
 
-void imprimirTiempos(std::chrono::seconds secondsDuration,int corregidos,int incorregibles,int correctos,int totales){
+void imprimirTiempos(chrono::seconds secondsDuration, int corregidos, int incorregibles, int correctos, int totales) {
     cout << "Tiempo: " << secondsDuration.count() << endl;
     cout << "Bloques Corregidos: " << corregidos << endl;
     cout << "Bloques Incorregibles: " << incorregibles << endl;
@@ -15,168 +15,143 @@ void imprimirTiempos(std::chrono::seconds secondsDuration,int corregidos,int inc
     cout << "Total: " << totales << endl;
 }
 
-
-bool Incorregible(const vector<short> indiceBorraduras, Decodificador deco){
-    if (deco.BloqIncorregible(indiceBorraduras)){
-        return true;
-    }
-    else return false;
+bool incorregible(const vector<short> &indiceBorraduras, Decodificador &deco) {
+    return deco.bloqIncorregible(indiceBorraduras);
 }
 
-vector<short> CalcularSindrome(const vector<short> y,const vector<vector<short>> matrizParidad, Decodificador deco){
-    vector<short> sindrome = deco.CalcSindromePolinomial(y, matrizParidad); 
-    return sindrome;
+vector<short> calcularSindrome(const vector<short> &y, const vector<vector<short>> &matrizParidad, Decodificador &deco) {
+    return deco.calcSindromePolinomial(y, matrizParidad);
 }
 
-void ImprimirContenidoArchivo(std::ifstream& file) {
-    // Verificar si el flujo de archivo es válido y si se ha abierto correctamente
+void imprimirContenidoArchivo(ifstream &file) {
     if (!file.is_open() || file.fail()) {
-        std::cerr << "El flujo de archivo no está abierto o está en un estado de error." << std::endl;
+        cerr << "El flujo de archivo no está abierto o está en un estado de error." << endl;
         return;
     }
 
-    // Guardar la posición actual del puntero de lectura
-    std::streampos currentPos = file.tellg();
-
-    // Limpiar los flags de error y mover el puntero al inicio del archivo
+    streampos currentPos = file.tellg();
     file.clear();
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, ios::beg);
 
-    // Leer y mostrar el contenido del archivo
-    std::string line;
-    while (std::getline(file, line)) {
-        std::cout << line << std::endl;
+    string line;
+    while (getline(file, line)) {
+        cout << line << endl;
     }
 
-    // Restaurar la posición del puntero de lectura
     file.clear();
     file.seekg(currentPos);
 }
 
-void ImprimirVector(const std::vector<short>& vec) {
+void imprimirVector(const vector<short> &vec) {
     for (short val : vec) {
-        std::cout << val << ' ';
+        cout << val << ' ';
     }
-    std::cout << std::endl;
+    cout << endl;
 }
 
-void ImprimirMatrizParidad(const std::vector<std::vector<short>>& vec) {
-    for (const auto& subVec : vec) {
+void imprimirMatrizParidad(const vector<vector<short>> &vec) {
+    for (const auto &subVec : vec) {
         for (short val : subVec) {
-            std::cout << val << ' ';
+            cout << val << ' ';
         }
-        std::cout << std::endl; // Salto de línea después de cada sub-vector
+        cout << endl;
     }
 }
 
 typedef struct {
-    char fileType[4];   // Example header field: 4-byte file type
-    int version;        // Example header field: version number
-    int recordCount;    // Example header field: number of records
+    char fileType[4];
+    int version;
+    int recordCount;
 } Header;
 
-int main(int argc, char *argv[]) {     
-   
-    int n,r;
+int main(int argc, char *argv[]) {
+    int n, r;
     ManejadorDeArchivos archivos;
-    
-    //POR DEFECTO DEJO LOS PATHS
-    string symbolFilePath = "misdatos.ech"; 
-    string erasFilePath = "misdatos.txt"; 
+
+    string symbolFilePath = "misdatos.ech";
+    string erasFilePath = "misdatos.eras";
     string outputFilePath = "salida.dat";
-   
-    bool verificarPrecondiciones = archivos.ProcesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
-    
+
+    bool verificarPrecondiciones = archivos.procesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
+
     if (!verificarPrecondiciones) {
         return 0;
     }
 
-    bool abrir = archivos.AbrirArchivos(symbolFilePath, erasFilePath, outputFilePath);
-    // Intentar abrir los archivos
+    bool abrir = archivos.abrirArchivos(symbolFilePath, erasFilePath, outputFilePath);
     if (!abrir) {
         return 0;
     }
-    // Obtener los flujos de archivo a través del manejador
-    std::ifstream& sfile = archivos.GetSymbolFile();
-    std::ifstream& efile = archivos.GetErasureFile();
-    std::ofstream& outputFile = archivos.GetOutputFile();
 
-    ImprimirContenidoArchivo(efile);
+    ifstream &sfile = archivos.getSymbolFile();
+    ifstream &efile = archivos.getErasureFile();
+    ofstream &outputFile = archivos.getOutputFile();
+
+    imprimirContenidoArchivo(efile);
 
     auto inicioReloj = chrono::high_resolution_clock::now();
-    Decodificador deco = Decodificador(n, r);
+    Decodificador deco(n, r);
 
     int totales = 0;
     int corregidos = 0;
     int incorregibles = 0;
     int correctos = 0;
 
-    vector<short> y = deco.LeerBloqueSimbolos(sfile);
-    vector<vector<short>> matrizParidad = deco.ObtenerMatrizChequeo();
+    vector<short> y = deco.leerBloqueSimbolos(sfile);
+    vector<vector<short>> matrizParidad = deco.obtenerMatrizChequeo();
     while (!y.empty()) {
-
         vector<short> yDecodificado = y;
-        vector<short> indiceBorraduras = deco.LeerIndiceSimbolos(efile);
-        
-        if(Incorregible(indiceBorraduras,deco)){
+        vector<short> indiceBorraduras = deco.leerIndiceSimbolos(efile);
+
+        if (incorregible(indiceBorraduras, deco)) {
             incorregibles++;
-        }
-        else {
-            vector<short> syndromePolynomial; 
-            syndromePolynomial = CalcularSindrome(y,matrizParidad,deco);
-            if (!syndromePolynomial.empty()){
-                vector<short> erasureLocatorPolynomial = deco.CalcularPolBorraduras(indiceBorraduras); 
+        } else {
+            vector<short> syndromePolynomial = calcularSindrome(y, matrizParidad, deco);
+            if (!syndromePolynomial.empty()) {
+                vector<short> erasureLocatorPolynomial = deco.calcularPolBorraduras(indiceBorraduras);
+                vector<short> modifiedSyndromePolynomial = deco.calcularSindromeModificado(syndromePolynomial, erasureLocatorPolynomial);
 
-                vector<short> modifiedSyndromePolynomial = deco.CalcularSindromeModificado(syndromePolynomial, erasureLocatorPolynomial); 
-               
-                pair<vector<short>, vector<short>> res = deco.Euclides(modifiedSyndromePolynomial, deco.ObtenerPolinomioXR()); 
-                vector<short> errorLocatorPolynomial = res.first; 
-                vector<short> errorEvaluatorPolynomial = res.second; 
-                
-                errorLocatorPolynomial = deco.ObtenerPolinomioLocalizador(erasureLocatorPolynomial, errorLocatorPolynomial);
+                pair<vector<short>, vector<short>> res = deco.euclides(modifiedSyndromePolynomial, deco.obtenerPolinomioXR());
+                vector<short> errorLocatorPolynomial = res.first;
+                vector<short> errorEvaluatorPolynomial = res.second;
 
-                vector<short> rootsIndexes = deco.RaicesNoNulasChien(errorLocatorPolynomial);
+                errorLocatorPolynomial = deco.obtenerPolinomioLocalizador(erasureLocatorPolynomial, errorLocatorPolynomial);
+                vector<short> rootsIndexes = deco.raicesNoNulas(errorLocatorPolynomial);
 
                 if (!rootsIndexes.empty()) {
-                    pair<vector<short>, vector<short>> error = deco.Forneys(rootsIndexes, errorLocatorPolynomial, errorEvaluatorPolynomial);
+                    pair<vector<short>, vector<short>> error = deco.forneys(rootsIndexes, errorLocatorPolynomial, errorEvaluatorPolynomial);
                     vector<short> errorValues = error.first;
                     vector<short> errorLocations = error.second;
-                    if ((errorValues.empty() || (errorLocations.empty()))){
+                    if (errorValues.empty() || errorLocations.empty()) {
                         incorregibles++;
-                    }
-                    else{
-                        yDecodificado = deco.Decodificar(y, errorLocations, errorValues);
+                    } else {
+                        yDecodificado = deco.decodificar(y, errorLocations, errorValues);
                         corregidos++;
                     }
-                }
-                else {
+                } else {
                     incorregibles++;
                 }
-            }
-            else {
+            } else {
                 correctos++;
-            }  
+            }
         }
-        yDecodificado.erase(yDecodificado.end() - r, yDecodificado.end());
 
+        yDecodificado.erase(yDecodificado.end() - r, yDecodificado.end());
         transform(yDecodificado.begin(), yDecodificado.end(), yDecodificado.begin(), [](short value) {
             return (value << 8) | ((value >> 8) & 0xFF);
-        });       
-        
-        outputFile.write((char*)yDecodificado.data(), yDecodificado.size() * sizeof(short));
-        
-        deco.IncrementoBloque();
+        });
 
+        outputFile.write(reinterpret_cast<char*>(yDecodificado.data()), yDecodificado.size() * sizeof(short));
+        deco.incrementoBloque();
         totales++;
-
+        y = deco.leerBloqueSimbolos(sfile);
     }
 
-    archivos.CerrarArchivos();
+    archivos.cerrarArchivos();
+    auto finReloj = chrono::high_resolution_clock::now();
+    auto secondsDuration = chrono::duration_cast<chrono::seconds>(finReloj - inicioReloj);
 
-    auto finReloj= chrono::high_resolution_clock::now();
-    auto secondsDuration = chrono::duration_cast<chrono::seconds>(finReloj- inicioReloj);
-
-    imprimirTiempos(secondsDuration,corregidos,incorregibles,correctos,totales);
+    imprimirTiempos(secondsDuration, corregidos, incorregibles, correctos, totales);
 
     return 0;
 }

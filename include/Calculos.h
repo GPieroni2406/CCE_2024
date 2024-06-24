@@ -14,17 +14,17 @@ class Calculos{
     public:
         Calculos(){};
 
-        short Suma(int x, int y);
+        short suma(int x, int y);
 
-        short Resta(int x, int y);     
+        short resta(int x, int y);     
 
-        short Mult(int x, int y);
+        short mult(int x, int y);
 
-        short Inv(int num);
+        short inv(int num);
 
-        short Division(int x, int y);
+        short division(int x, int y);
 
-        int Obtener_q();
+        int obtener_q();
 };
 
 #endif
