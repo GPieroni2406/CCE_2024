@@ -7,35 +7,35 @@ Decodificador::Decodificador(const int &n, const int &r) {
     this->n = n;
     this->r = r;
     this->cantBloquesLeidos = 0;
-
-    // Inicializar vector xr
-    this->xr.resize(r + 1); // El tamaño del vector xr es r + 1
-    for (int i = 0; i <= r; ++i) {
-        this->xr[i] = (i == r) ? 1 : 0;
+    for (int i = 0; i < this->r; i++){
+        this->xr.push_back(0);
     }
+    this->xr.push_back(1);
 }
 
 vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
     // Calcular la cantidad de bytes a leer
-    int bytesALeer = n; // Cada símbolo representa 1 byte
+    int simbolos = n; //Cada simbolo es de 1 byte -> n bytes para leer.
 
     // Calcular el desplazamiento
-    int desplazamiento = this->cantBloquesLeidos * bytesALeer;
+    int desplazamiento = this->cantBloquesLeidos * n;
 
     // Mover el puntero de lectura al inicio del bloque deseado
     archivo.seekg(desplazamiento, ios::beg);
 
     // Leer el bloque de datos
     vector<short> datos(n);
-    archivo.read(reinterpret_cast<char*>(datos.data()), bytesALeer);
-
-    // Verificar si se leyeron todos los bytes esperados
-    if (archivo.gcount() < static_cast<streamsize>(bytesALeer)) {
-        return {}; // Devolver vector vacío si no se leyeron todos los datos
+    char symbol;
+    for (int i = 0; i < simbolos; ++i) {
+        if (archivo.read(&symbol, 1)) {
+            std::cout << "Carácter leído: " << symbol << std::endl;
+            // Convertir el byte leído a short y almacenarlo
+            datos[i] = static_cast<short>(static_cast<unsigned char>(symbol));
+        } else {
+            // Si no se pudo leer, devolver un vector vacío
+            return {};
+        }
     }
-
-    // Incrementar el contador de bloques leídos
-    incrementoBloque();
 
     return datos;
 }
@@ -52,12 +52,13 @@ vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n
     // Mover el puntero de lectura al inicio del bloque deseado
     archivo.seekg(desplazamiento, ios::beg);
 
+    char borradura;
+
     // Leer los bytes y buscar los índices de símbolos borrados
     for (int i = 0; i < n; ++i) {
-        char byte;
-        archivo.read(&byte, 1);
-        if (byte == 1) {
-            indices.push_back(n - i - 1);
+        if (archivo.read(&borradura, 1) && borradura == 1) {
+            // Si encontramos una borradura, guardamos su posición
+            indices.push_back(n-i-1);
         }
     }
 
@@ -65,14 +66,12 @@ vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n
 }
 
 void Decodificador::incrementoBloque() {
-    // Incrementar el contador de bloques leídos
-    ++this->cantBloquesLeidos;
+    this->cantBloquesLeidos++;
+    printf("Se leyeron %d bloques\n",cantBloquesLeidos);
 }
 
 vector<short> Decodificador::obtenerPolinomioXR() {
-    // Devolver una copia del vector xr
-    vector<short> copiaXR(this->xr.begin(), this->xr.end());
-    return copiaXR;
+    return this->xr;
 }
 
 vector<short> Decodificador::leerBloqueSimbolos(ifstream &symbolfile) {
@@ -80,35 +79,33 @@ vector<short> Decodificador::leerBloqueSimbolos(ifstream &symbolfile) {
     return leerBloque(symbolfile, this->n);
 }
 
-vector<short> Decodificador::leerIndiceSimbolos(ifstream &erasfile) {
+vector<short> Decodificador::leerIndiceBorraduras(ifstream &erasfile) {
     // Llamar a la función encontrarBorraduras para obtener los índices de símbolos borrados
     return encontrarBorraduras(erasfile, this->n);
 }
 
 vector<vector<short>> Decodificador::obtenerMatrizChequeo() {
-    // Crear la matriz de control de paridad
-    vector<vector<short>> matrizDeParidad(this->r, vector<short>(this->n));
-
-    // Llenar la matriz con valores del campo galoisiano
-    for (int i = 0; i < this->r; ++i) {
-        for (int j = 0; j < this->n; ++j) {
-            // Calcular el valor en la posición (i, j)
-            matrizDeParidad[i][j] = _gfalog[((i + 1) * j) % 255];
+    vector<vector<short>> res;
+    for (int i = 0; i < this->r; i++){
+        vector<short> row;
+        for (int j = 0; j < this->n; j++){
+            row.push_back(_gfalog[((i+1)*j)%(255)]);
         }
+        res.push_back(row);
     }
-
-    // Retornar la matriz de control de paridad calculada
-    return matrizDeParidad;
+    return res;
 }
 
 vector<short> Decodificador::calcSindromePolinomial(const vector<short> &symbols, const vector<vector<short>> &H) {
-    vector<short> sindrome(this->r, 0);
+    vector<short> sindrome;
 
     // Calcular el polinomio de síndrome
     for (int i = 0; i < this->r; ++i) {
+        short sum = 0;
         for (int j = 0; j < this->n; ++j) {
-            sindrome[i] = calc.suma(sindrome[i], calc.mult(symbols[j], H[i][j]));
+            sum = calc.suma(sum, calc.mult(symbols[this->n-j-1], H[i][j]));
         }
+        sindrome.push_back(sum);
     }
 
     // Eliminar los coeficientes cero no significativos al final del polinomio
@@ -122,17 +119,12 @@ vector<short> Decodificador::calcSindromePolinomial(const vector<short> &symbols
 
 vector<short> Decodificador::calcularPolBorraduras(const vector<short> &indicesBorrados) {
     // Polinomio inicializado como 1
-    vector<short> polinomioBorraduras = {1};
+    vector<short> polinomioBorraduras(1,1);
 
     // Multiplicar por cada índice de borrado
     for (short indice : indicesBorrados) {
-        // Coeficiente α^indice en el campo galoisiano
         short coeficiente = _gfalog[indice];
-
-        // Polinomio (1 - α^indice)
-        vector<short> factor = {calc.resta(0, coeficiente), 1};
-
-        // Multiplicación de polinomios
+        vector<short> factor = {1,calc.resta(0, coeficiente)};
         polinomioBorraduras = pol.multiplicarPolinomios(polinomioBorraduras, factor);
     }
 
@@ -141,87 +133,65 @@ vector<short> Decodificador::calcularPolBorraduras(const vector<short> &indicesB
 
 bool Decodificador::bloqIncorregible(vector<short> indicesBorrados) {
     // Calcular la cantidad de índices de borrado
-    int cantBorrados = static_cast<int>(indicesBorrados.size());
-    
-    // Calcular el límite para determinar si el bloque es incorregible
-    int limiteIncorregible = (this->r + this->rho) / 2;
-
+    int cantBorrados = (int)indicesBorrados.size();
+    int redundancia = this -> r;
     // Actualizar rho con la cantidad de índices de borrado encontrados
     this->rho = cantBorrados;
 
     // Determinar si el bloque es incorregible basándose en el límite
-    bool bloqueIncorregible = (this->rho > limiteIncorregible);
+    bool bloqueIncorregible = (this->rho > redundancia);
 
     // Devolver el resultado
     return bloqueIncorregible;
 }
 
-pair<vector<short>, vector<short>> Decodificador::euclides(const vector<short> &primerPolinomio, const vector<short> &segundoPolinomio) {
-    // Calcular el límite según la fórmula dada
-    double limite = (this->r + this->rho) / 2.0;
+pair<vector<short>, vector<short>> Decodificador::euclides(const vector<short> &poly1,const vector<short> &poly2) {
+    double stop = (this->r + this->rho) / 2.0;
+    vector<short> r0 = poly2;
+    vector<short> r1 = poly1;
+    vector<short> t0 = {0};
+    vector<short> t1 = {1};
+    while (!(r1.size() - 1 < stop && stop <= r0.size() - 1)) {
+        pair <vector<short>, vector<short>> res = pol.dividirPolinomio(r0, r1);
+        vector<short> quotient = res.first;
+        r0 = r1;
+        r1 = res.second;
 
-    // Inicializar variables
-    vector<short> s_anterior = {0};   // s_anterior = 0
-    vector<short> r_anterior = segundoPolinomio;  // r_anterior = segundoPolinomio
-    vector<short> s_actual = {1};    // s_actual = 1
-    vector<short> r_actual = primerPolinomio;    // r_actual = primerPolinomio
-
-    // Algoritmo extendido de Euclides
-    while (!(r_actual.size() - 1 < limite && limite <= r_anterior.size() - 1)) {
-        // Calcular cociente y residuo de r_anterior entre r_actual
-        vector<short> cociente = pol.calcularCociente(r_anterior, r_actual);
-        vector<short> nuevo_r_anterior = r_actual;
-        r_actual = pol.calcularResiduo(r_anterior, r_actual);
-        r_anterior = nuevo_r_anterior;
-
-        // Actualizar s_anterior y s_actual
-        vector<short> temp_s = s_anterior;
-        s_anterior = s_actual;
-        s_actual = pol.restarPolinomios(temp_s, pol.multiplicarPolinomios(cociente, s_actual));
+        vector<short> temp = t0;
+        t0 = t1;
+        t1 = pol.restarPolinomios(temp, pol.multiplicarPolinomios(quotient, t1));
     }
-
-    // Retornar el resultado
-    return make_pair(s_actual, r_actual);
+    return make_pair(t1,r1);
 }
 
-pair<vector<short>, vector<short>> Decodificador::forneys(const vector<short> &raicesPolinomioLocalizadorErrores, const vector<short> &polinomioLocalizadorErrores, const vector<short> &polinomioEvaluadorErrores) {
-    vector<short> valoresErrores;
-    vector<short> ubicacionesErrores;
-    vector<short> derivada = pol.derivarPolinomio(polinomioLocalizadorErrores);
+pair<vector<short>, vector<short>> Decodificador::forneys(const vector<short> &errorLocatorPolyRootsIndexes,const  vector<short> &errorLocatorPoly,const vector<short> &errorEvaluatorPolynomial){
+    vector<short> errorValues;
+    vector<short> errorLocations;
+    vector<short> derivative = pol.derivarPolinomio(errorLocatorPoly);
 
-    // Si no hay raíces en el polinomio localizador de errores, devolver listas vacías
-    if (raicesPolinomioLocalizadorErrores.empty()) {
-        return make_pair(valoresErrores, ubicacionesErrores);
+    if (errorLocatorPolyRootsIndexes.empty()){
+        return make_pair(errorValues, errorLocations);
     }
     
-    // Calcular valores y ubicaciones de los errores
-    for (short raiz : raicesPolinomioLocalizadorErrores) {
-        // Calcular valor del error
-        short valorError = calc.mult(calc.obtener_q(), calc.division(pol.evaluarPolinomio(polinomioEvaluadorErrores, raiz), pol.evaluarPolinomio(derivada, raiz)));
-        valoresErrores.push_back(valorError);
-
-        // Calcular ubicación del error
-        short ubicacionError = (calc.obtener_q() - raiz) % calc.obtener_q();
-        ubicacionesErrores.push_back(ubicacionError);
+    for (short i : errorLocatorPolyRootsIndexes){
+        errorValues.push_back(calc.mult(255, calc.division(pol.evaluarPolinomio(errorEvaluatorPolynomial, i), pol.evaluarPolinomio(derivative, i))));
+        errorLocations.push_back((255 - i) % 255);
     }
     
-    // Devolver valores y ubicaciones de los errores encontrados
-    return make_pair(valoresErrores, ubicacionesErrores);
+    return make_pair(errorValues, errorLocations);
 }
 
 vector<short> Decodificador::decodificar(const vector<short> &palabraRecibida, const vector<short> &ubicacionesErrores, const vector<short> &valoresErrores) {
-    vector<short> palabraDecodificada = palabraRecibida;
-
-    // Corregir errores en las ubicaciones especificadas
-    for (size_t i = 0; i < ubicacionesErrores.size(); ++i) {
-        size_t indice = ubicacionesErrores[i];
-        if (indice < palabraRecibida.size()) {
-            size_t posicion = this->n - indice - 1;
-            palabraDecodificada[posicion] = calc.resta(palabraRecibida[posicion], valoresErrores[i]);
+    int j=0;
+    vector<short> decodedWord = palabraRecibida;
+    for (auto i: ubicacionesErrores){
+        if (i < (int)palabraRecibida.size()){
+            decodedWord[this->n - i - 1] = calc.resta(palabraRecibida[this->n - i - 1], valoresErrores[j]);
         }
+        j++;
     }
 
-    return palabraDecodificada;
+    return decodedWord;
 }
 
 vector<short> Decodificador::obtenerPolinomioLocalizador(const vector<short> &polinomioBorrados, const vector<short> &polinomioErrores) {
@@ -230,40 +200,34 @@ vector<short> Decodificador::obtenerPolinomioLocalizador(const vector<short> &po
 }
 
 vector<short> Decodificador::raicesNoNulas(const vector<short> &polinomio) {
-    int contadorRaices = 0; // Contador de raíces encontradas
-    vector<short> indicesRaices;   // Índices de las raíces no nulas
-    
-    int gradoPolinomio = (int)polinomio.size() - 1; // Grado del polinomio
+    vector<short> index = {};        
+    int amountRoots = 0;    
+    int degree = (int)polinomio.size() - 1;  
 
-    // Buscar raíces no nulas del polinomio en el campo GF(256)
-    if (!polinomio.empty()) {
-        for (int i = 1; i < 256; i++) {
-            if (contadorRaices < gradoPolinomio) {
-                if (pol.evaluarPolinomio(polinomio, i) == 0) {
-                    indicesRaices.push_back(i);
-                    contadorRaices++;
-                }
-            } else {
-                break;
+     if (!polinomio.empty()){
+         for (int i=1; i < 256 && amountRoots < degree; i++){
+            if (pol.evaluarPolinomio(polinomio, i) == 0){
+                printf("raiz encontrada en rootIndexes %d\n",i);
+                index.push_back(i);
+                amountRoots++;
             }
         }
+        }
+    if (amountRoots == degree){
+        return index;
     }
-
-    // Verificar si se encontraron todas las raíces del polinomio
-    if (contadorRaices == gradoPolinomio) {
-        return indicesRaices;
-    } else {
-        vector<short> noRaices;
-        return noRaices; // Polinomio no tiene suficientes raíces no nulas
-    }
+    else {
+        printf("Se encontraron menos raices que el grado del polinomio.\n");
+        return {};
+    }    
 }
 
-vector<short> Decodificador::calcularSindromeModificado(const vector<short> &polinomioSindrome, const vector<short> &localizadorBorrado) {
+vector<short> Decodificador::calcularSindromeModificado(const vector<short> &polinomioSindrome, const vector<short> &indicesBorrados) {
     // Realizar la multiplicación de polinomios entre síndrome y localizador de borrado
-    vector<short> producto = pol.multiplicarPolinomios(polinomioSindrome, localizadorBorrado);
+    vector<short> producto = pol.multiplicarPolinomios(polinomioSindrome, indicesBorrados);
 
     // Obtener el residuo de la división del polinomio resultante por el polinomio generador xr
-    vector<short> residuodivision = pol.calcularResiduo(producto, this->xr);
+    vector<short> residuodivision = pol.dividirPolinomio(producto, this->xr).second;
 
     // Devolver el residuo calculado
     return residuodivision;

@@ -1,2 +1,2 @@
 g++ -o rsdecoder main.cpp Decodificador.cpp ManejadorDeArchivos.cpp gf256.cpp Calculos.cpp Polinomio.cpp -std=c++11
-./rsdecoder -n 96 -r 32 -s utils/misdatos.ech -e utils/misdatos.eras -o salida
+./rsdecoder -n 42 -r 10 -s utils/misdatos.ech -e utils/misdatos.eras -o salida

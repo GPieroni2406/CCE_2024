@@ -34,4 +34,6 @@ std::vector<short> calcularCociente(const std::vector<short> &numerador, std::ve
 
 // Calcula el residuo de la división de dos polinomios utilizando la división larga de polinomios.
 std::vector<short> calcularResiduo(const std::vector<short> &numerador, std::vector<short> denominador);
+
+std::pair<std::vector<short>, std::vector<short>> dividirPolinomio(vector<short> numerator, vector<short> denominator);
 };

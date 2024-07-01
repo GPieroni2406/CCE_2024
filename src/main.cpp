@@ -49,6 +49,18 @@ void imprimirVector(const vector<short> &vec) {
     cout << endl;
 }
 
+void imprimirIndices(const std::vector<short>& indices) {
+    if (indices.empty()) {
+        std::cout << "No hay borraduras." << std::endl;
+    } else {
+        std::cout << "Índices de borraduras: ";
+        for (short indice : indices) {
+            std::cout << indice << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 void imprimirMatrizParidad(const vector<vector<short>> &vec) {
     for (const auto &subVec : vec) {
         for (short val : subVec) {
@@ -87,8 +99,6 @@ int main(int argc, char *argv[]) {
     ifstream &efile = archivos.getErasureFile();
     ofstream &outputFile = archivos.getOutputFile();
 
-    imprimirContenidoArchivo(efile);
-
     auto inicioReloj = chrono::high_resolution_clock::now();
     Decodificador deco(n, r);
 
@@ -99,26 +109,51 @@ int main(int argc, char *argv[]) {
 
     vector<short> y = deco.leerBloqueSimbolos(sfile);
     vector<vector<short>> matrizParidad = deco.obtenerMatrizChequeo();
+    printf("Esta es la matriz de chequeo\n");
+    imprimirMatrizParidad(matrizParidad);
+    int cont=0;
     while (!y.empty()) {
+    //while (cont<1){
         vector<short> yDecodificado = y;
-        vector<short> indiceBorraduras = deco.leerIndiceSimbolos(efile);
-
+        printf("Este es el vector y que llego:\n");
+        imprimirVector(yDecodificado);
+        vector<short> indiceBorraduras = deco.leerIndiceBorraduras(efile);
+        printf("Estas son las posiciones con borraduras en el bloque actual:\n");
+        imprimirIndices(indiceBorraduras);
         if (incorregible(indiceBorraduras, deco)) {
             incorregibles++;
-        } else {
+        } 
+        else {
             vector<short> syndromePolynomial = calcularSindrome(y, matrizParidad, deco);
+            printf("Este es el sindrome:\n");
+            imprimirVector(syndromePolynomial);
             if (!syndromePolynomial.empty()) {
                 vector<short> erasureLocatorPolynomial = deco.calcularPolBorraduras(indiceBorraduras);
-                vector<short> modifiedSyndromePolynomial = deco.calcularSindromeModificado(syndromePolynomial, erasureLocatorPolynomial);
+                printf("Este es el Polinomio de Borraduras:\n");
+                imprimirVector(erasureLocatorPolynomial);
 
+                vector<short> modifiedSyndromePolynomial = deco.calcularSindromeModificado(syndromePolynomial, erasureLocatorPolynomial);
+                printf("Este es el Sindrome Modificado:\n");
+                imprimirVector(modifiedSyndromePolynomial);
+                printf("Este es el polinomio XR:\n");
+                imprimirVector(deco.obtenerPolinomioXR());
                 pair<vector<short>, vector<short>> res = deco.euclides(modifiedSyndromePolynomial, deco.obtenerPolinomioXR());
+
                 vector<short> errorLocatorPolynomial = res.first;
+                printf("Este es el polinomio delta:\n");
+                imprimirVector(errorLocatorPolynomial);
+                
                 vector<short> errorEvaluatorPolynomial = res.second;
+                printf("Este es el polinomio gama:\n");
+                imprimirVector(errorEvaluatorPolynomial);
 
                 errorLocatorPolynomial = deco.obtenerPolinomioLocalizador(erasureLocatorPolynomial, errorLocatorPolynomial);
+                printf("Este es el polinomio delta modificado:\n");
+                imprimirVector(errorLocatorPolynomial);
+
                 vector<short> rootsIndexes = deco.raicesNoNulas(errorLocatorPolynomial);
 
-                if (!rootsIndexes.empty()) {
+                if (!rootsIndexes.empty()) {                  
                     pair<vector<short>, vector<short>> error = deco.forneys(rootsIndexes, errorLocatorPolynomial, errorEvaluatorPolynomial);
                     vector<short> errorValues = error.first;
                     vector<short> errorLocations = error.second;
@@ -126,6 +161,8 @@ int main(int argc, char *argv[]) {
                         incorregibles++;
                     } else {
                         yDecodificado = deco.decodificar(y, errorLocations, errorValues);
+                        printf("Este es el vector y decodificado:\n");
+                        imprimirVector(yDecodificado);
                         corregidos++;
                     }
                 } else {
@@ -137,17 +174,20 @@ int main(int argc, char *argv[]) {
         }
 
         yDecodificado.erase(yDecodificado.end() - r, yDecodificado.end());
-        transform(yDecodificado.begin(), yDecodificado.end(), yDecodificado.begin(), [](short value) {
-            return (value << 8) | ((value >> 8) & 0xFF);
-        });
+        //transform(yDecodificado.begin(), yDecodificado.end(), yDecodificado.begin(), [](short value) {
+        //    return (value << 8) | ((value >> 8) & 0xFF);
+        //});
 
         outputFile.write(reinterpret_cast<char*>(yDecodificado.data()), yDecodificado.size() * sizeof(short));
         deco.incrementoBloque();
         totales++;
         y = deco.leerBloqueSimbolos(sfile);
+        cont ++;
     }
-
     archivos.cerrarArchivos();
+
+    printf("---------------------                  TERMINO LA EJECUCION                         ----------------------\n");
+
     auto finReloj = chrono::high_resolution_clock::now();
     auto secondsDuration = chrono::duration_cast<chrono::seconds>(finReloj - inicioReloj);
 

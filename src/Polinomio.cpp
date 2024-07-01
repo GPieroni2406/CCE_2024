@@ -1,5 +1,45 @@
 #include "../include/Polinomio.h"
 
+std::pair<std::vector<short>, std::vector<short>> Polinomio::dividirPolinomio(vector<short> numerator, vector<short> denominator) {
+    std::vector<short> quotient, remainder;
+    
+    while (!denominator.empty() && denominator.back() == 0) {
+        denominator.pop_back();
+    }
+
+    if (denominator.empty()) {
+        std::cerr << "Error: Division by zero!" << std::endl;
+        return std::make_pair(quotient, remainder);
+    }
+
+    int numDegree = numerator.size() - 1;
+    int denDegree = denominator.size() - 1;
+    remainder = numerator;
+
+    if (numDegree < denDegree) {
+        quotient.push_back(0);
+        return std::make_pair(quotient, numerator);
+    }
+
+    quotient.resize(numDegree - denDegree + 1, 0);
+
+    for (int i = numDegree; i >= denDegree; --i) {
+        int term = calc.division(remainder[i], denominator[denDegree]);
+
+        quotient[i - denDegree] = term;
+
+        for (int j = 0; j <= denDegree; ++j) {
+            remainder[i - j] = calc.resta(remainder[i-j],calc.mult(term,denominator[denDegree - j]));
+        }
+    }
+
+    // Remove extra zeros
+    while (remainder.size()!=1 && remainder.back() == 0) {
+        remainder.pop_back();
+    }
+
+    return std::make_pair(quotient, remainder);
+}
 
 std::vector<short> Polinomio::calcularCociente(const std::vector<short> &numerador, std::vector<short> denominador) {
     std::vector<short> cociente;
@@ -86,65 +126,56 @@ std::vector<short> Polinomio::calcularResiduo(const std::vector<short> &numerado
 }
 
 std::vector<short> Polinomio::derivarPolinomio(std::vector<short> coeficientes) {
-    // Inicializar el vector para almacenar los coeficientes de la derivada
-    std::vector<short> derivada;
-
-    // Recorrer los coeficientes del polinomio, comenzando desde el segundo término
-    for (size_t indice = 1; indice < coeficientes.size(); ++indice) {
-        // Calcular el nuevo coeficiente multiplicando el coeficiente actual por su índice
-        derivada.push_back(coeficientes[indice] * static_cast<short>(indice));
+    vector<short> res(coeficientes.size()-1);
+    for (long unsigned int i = 1; i < coeficientes.size(); i++){
+        res[i-1] = calc.mult(i, coeficientes[i]);
     }
-
-    // Devolver el vector que contiene los coeficientes de la derivada del polinomio
-    return derivada;
+    return res;
 }
 
 short Polinomio::evaluarPolinomio(std::vector<short> coeficientes, short x) {
-    short resultado = 0;
-    short potencia = 1; // x^0
-    for (size_t indice = 0; indice < coeficientes.size(); ++indice) {
-        resultado += coeficientes[indice] * potencia;
-        potencia *= x; // siguiente potencia de x
+    short res = 0;
+    for (long unsigned int j = 0; j < coeficientes.size(); j++){
+        res = calc.suma(res, calc.mult(coeficientes[j],_gfalog[x*j % 255]));
     }
-    return resultado;
+    return res;
 }
 
 std::vector<short> Polinomio::multiplicarPolinomios(std::vector<short> polinomio1, std::vector<short> polinomio2) {
-    // Inicializar el vector resultado con ceros, su tamaño es la suma de los grados de los dos polinomios menos uno
-    std::vector<short> resultado(polinomio1.size() + polinomio2.size() - 1, 0);
-
-    // Multiplicar cada coeficiente de polinomio1 por cada coeficiente de polinomio2
-    for (size_t i = 0; i < polinomio1.size(); ++i) {
-        for (size_t j = 0; j < polinomio2.size(); ++j) {
-            // Sumar el producto de los coeficientes correspondientes al lugar apropiado en el vector resultado
-            resultado[i + j] += polinomio1[i] * polinomio2[j];
+    vector<short> res(polinomio1.size() + polinomio2.size() - 1, 0);  
+    for (long unsigned int i = 0; i < polinomio1.size(); i++){
+        for (long unsigned int j = 0; j < polinomio2.size(); j++){
+            res[i+j] = calc.suma(res[i+j], calc.mult(polinomio1[i], polinomio2[j]));
         }
     }
-
-    // Devolver el polinomio resultante de la multiplicación
-    return resultado;
+    return res;
 }
 
 
-std::vector<short> Polinomio::restarPolinomios(std::vector<short> minuendo, std::vector<short> sustraendo) {
-    size_t maxGrado = std::max(minuendo.size(), sustraendo.size());
+std::vector<short> Polinomio::restarPolinomios(std::vector<short> poly1, std::vector<short> poly2) {
+    size_t maxDegree = std::max(poly1.size()-1, poly2.size()-1);
 
-    // Redimensionar los polinomios al mismo tamaño
-    minuendo.resize(maxGrado, 0);
-    sustraendo.resize(maxGrado, 0);
+    // Make the polynomials have the same size
+    std::vector<short> paddedPoly1(maxDegree+1, 0);
+    std::vector<short> paddedPoly2(maxDegree+1, 0);
 
-    std::vector<short> diferencia(maxGrado);
-
-    
-    for (size_t i = 0; i < maxGrado; ++i) {
-        diferencia[i] = minuendo[i] - sustraendo[i];
+    for (size_t i = 0; i < poly1.size(); ++i) {
+        paddedPoly1[i] = poly1[i];
     }
 
-
-    // Eliminar ceros al final del resultado
-    while (!diferencia.empty() && diferencia.back() == 0) {
-        diferencia.pop_back();
+    for (size_t i = 0; i < poly2.size(); ++i) {
+        paddedPoly2[i] = poly2[i];
     }
 
-    return diferencia;
+    std::vector<short> result(maxDegree+1);
+    for (size_t i = 0; i < maxDegree+1; ++i) {
+        result[i] = calc.resta(paddedPoly1[i], paddedPoly2[i]);
+    }
+
+    // Remove leading zeros in the result
+    while (!result.empty() && result.back() == 0) {
+        result.pop_back();
+    }
+
+    return result;
 }
