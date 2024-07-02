@@ -36,6 +36,9 @@ vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
             return {};
         }
     }
+    //transform(datos.begin(), datos.end(), datos.begin(), [](short value) {
+    //    return (value << 8) | ((value >> 8) & 0xFF);
+    //});
 
     return datos;
 }

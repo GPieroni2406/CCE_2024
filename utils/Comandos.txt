@@ -1,0 +1,3 @@
+reechannel -q 256 -n 32 -R 100 misdatos.dat
+rsencode -q 256 -n 36 -r 4 -l misdatos.dat misdatos.rse
+reechannel -q 256 -n 36 --delta 0.01 --rho 0.02 misdatos.rse

@@ -70,6 +70,15 @@ void imprimirMatrizParidad(const vector<vector<short>> &vec) {
     }
 }
 
+void comprueboEndian(){
+    unsigned int i = 1;
+    char *c = reinterpret_cast<char*>(&i);
+    if (*c) //0000000000001
+        std::cout << "Little endian" << std::endl;
+    else // 1000000000000
+        std::cout << "Big endian" << std::endl;
+}
+
 typedef struct {
     char fileType[4];
     int version;
@@ -80,9 +89,9 @@ int main(int argc, char *argv[]) {
     int n, r;
     ManejadorDeArchivos archivos;
 
-    string symbolFilePath = "misdatos.ech";
-    string erasFilePath = "misdatos.eras";
-    string outputFilePath = "salida.dat";
+    string symbolFilePath = "../simb_borr/misdatos.ech";
+    string erasFilePath = "../simb_borr/misdatos.eras";
+    string outputFilePath = "../salidas/salida.dat";
 
     bool verificarPrecondiciones = archivos.procesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
 
@@ -185,13 +194,11 @@ int main(int argc, char *argv[]) {
         cont ++;
     }
     archivos.cerrarArchivos();
-
     printf("---------------------                  TERMINO LA EJECUCION                         ----------------------\n");
 
     auto finReloj = chrono::high_resolution_clock::now();
     auto secondsDuration = chrono::duration_cast<chrono::seconds>(finReloj - inicioReloj);
 
     imprimirTiempos(secondsDuration, corregidos, incorregibles, correctos, totales);
-
     return 0;
 }

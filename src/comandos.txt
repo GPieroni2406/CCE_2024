@@ -1,2 +1,3 @@
 g++ -o rsdecoder main.cpp Decodificador.cpp ManejadorDeArchivos.cpp gf256.cpp Calculos.cpp Polinomio.cpp -std=c++11
-./rsdecoder -n 42 -r 10 -s utils/misdatos.ech -e utils/misdatos.eras -o salida
+
+valgrind --track-origins=yes ./rsdecoder -n 42 -r 10 -s ../simb_borr/misdatos.ech -e ../simb_borr/misdatos.eras -o salida.dat
