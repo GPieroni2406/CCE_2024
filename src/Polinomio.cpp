@@ -1,181 +1,134 @@
 #include "../include/Polinomio.h"
 
-std::pair<std::vector<short>, std::vector<short>> Polinomio::dividirPolinomio(vector<short> numerator, vector<short> denominator) {
-    std::vector<short> quotient, remainder;
-    
-    while (!denominator.empty() && denominator.back() == 0) {
-        denominator.pop_back();
+void imprimirVectorPol(const vector<short> &vec) {
+    for (short val : vec) {
+        cout << val << ' ';
     }
-
-    if (denominator.empty()) {
-        std::cerr << "Error: Division by zero!" << std::endl;
-        return std::make_pair(quotient, remainder);
-    }
-
-    int numDegree = numerator.size() - 1;
-    int denDegree = denominator.size() - 1;
-    remainder = numerator;
-
-    if (numDegree < denDegree) {
-        quotient.push_back(0);
-        return std::make_pair(quotient, numerator);
-    }
-
-    quotient.resize(numDegree - denDegree + 1, 0);
-
-    for (int i = numDegree; i >= denDegree; --i) {
-        int term = calc.division(remainder[i], denominator[denDegree]);
-
-        quotient[i - denDegree] = term;
-
-        for (int j = 0; j <= denDegree; ++j) {
-            remainder[i - j] = calc.resta(remainder[i-j],calc.mult(term,denominator[denDegree - j]));
-        }
-    }
-
-    // Remove extra zeros
-    while (remainder.size()!=1 && remainder.back() == 0) {
-        remainder.pop_back();
-    }
-
-    return std::make_pair(quotient, remainder);
+    cout << endl;
 }
 
-std::vector<short> Polinomio::calcularCociente(const std::vector<short> &numerador, std::vector<short> denominador) {
-    std::vector<short> cociente;
-    
-    // Eliminar los ceros finales del denominador para evitar errores
-    while (!denominador.empty() && denominador.back() == 0) {
-        denominador.pop_back();
+std::pair<std::vector<short>, std::vector<short>> Polinomio::dividirPolinomio(std::vector<short> numerador, std::vector<short> denominador) {
+    std::vector<short> cociente, residuo;
+    for (; !denominador.empty() && denominador.back() == 0; denominador.pop_back()) {
+        // No se necesita cuerpo en el bucle for.
     }
 
-    // Comprobar si el denominador se ha convertido en un polinomio nulo
     if (denominador.empty()) {
-        std::cerr << "Error: división por cero" << std::endl;
-        return cociente;
+        std::cerr << "Problems con la división entre cero!" << std::endl;
+
     }
+    else{
+        int gradoNum = numerador.size() - 1;
+        int gradoDen = denominador.size() - 1;
+        residuo = numerador;
+        if (gradoNum < gradoDen) {
+            cociente.push_back(0);
+            residuo = numerador;
+        }
+        else{
+            cociente.resize(gradoNum - gradoDen + 1, 0);
+            int indiceNum = gradoNum;
+            while (indiceNum >= gradoDen) {
+                int termino = calc.division(residuo[indiceNum], denominador[gradoDen]);
+                cociente[indiceNum - gradoDen] = termino;
 
-    std::vector<short> residuo = numerador;
-    int gradoNumerador = numerador.size() - 1;
-    int gradoDenominador = denominador.size() - 1;
+                int indiceDen = 0;
+                while (indiceDen <= gradoDen) {
+                    residuo[indiceNum - indiceDen] = calc.resta(residuo[indiceNum - indiceDen], calc.mult(termino, denominador[gradoDen - indiceDen]));
+                    indiceDen++;
+                }
+                indiceNum--;
+            }
 
-    // Si el grado del numerador es menor que el del denominador, el cociente es cero
-    if (gradoNumerador < gradoDenominador) {
-        cociente.push_back(0);
-        return cociente;
-    }
+            // Eliminar ceros adicionales
+            while (residuo.size() != 1 && residuo.back() == 0) {
+                residuo.pop_back();
+            }
 
-    // Inicializar el vector cociente con ceros
-    cociente.resize(gradoNumerador - gradoDenominador + 1, 0);
 
-    // Realizar la división de polinomios
-    for (int i = gradoNumerador; i >= gradoDenominador; --i) {
-        short coeficiente = residuo[i] / denominador[gradoDenominador];
-        cociente[i - gradoDenominador] = coeficiente;
-
-        // Restar el polinomio del divisor multiplicado por el coeficiente al residuo
-        for (int j = 0; j <= gradoDenominador; ++j) {
-            residuo[i - j] -= coeficiente * denominador[gradoDenominador - j];
         }
     }
-
-    return cociente;
+    return std::make_pair(cociente, residuo);
 }
 
-std::vector<short> Polinomio::calcularResiduo(const std::vector<short> &numerador, std::vector<short> denominador) {
-    std::vector<short> residuo;
-
-    // Eliminar los ceros finales del denominador para evitar errores
-    while (!denominador.empty() && denominador.back() == 0) {
-        denominador.pop_back();
-    }
-
-    // Comprobar si el denominador se ha convertido en un polinomio nulo
-    if (denominador.empty()) {
-        std::cerr << "Error: división por cero" << std::endl;
-        return residuo;
-    }
-
-    residuo = numerador;
-    int gradoNumerador = numerador.size() - 1;
-    int gradoDenominador = denominador.size() - 1;
-
-    // Si el grado del numerador es menor que el del denominador, el residuo es el numerador
-    if (gradoNumerador < gradoDenominador) {
-        return numerador;
-    }
-
-    // Realizar la división de polinomios
-    for (int i = gradoNumerador; i >= gradoDenominador; --i) {
-        short coeficiente = residuo[i] / denominador[gradoDenominador];
-
-        // Restar el polinomio del divisor multiplicado por el coeficiente al residuo
-        for (int j = 0; j <= gradoDenominador; ++j) {
-            residuo[i - j] -= coeficiente * denominador[gradoDenominador - j];
-        }
-    }
-
-    // Eliminar ceros finales del residuo usando un reverse iterator
-    auto rit = residuo.rbegin();
-    while (rit != residuo.rend() && *rit == 0) {
-        ++rit;
-    }
-    residuo.erase(rit.base(), residuo.end());
-
-    return residuo;
-}
 
 std::vector<short> Polinomio::derivarPolinomio(std::vector<short> coeficientes) {
-    vector<short> res(coeficientes.size()-1);
-    for (long unsigned int i = 1; i < coeficientes.size(); i++){
-        res[i-1] = calc.mult(i, coeficientes[i]);
+    if (coeficientes.size() <= 1) {
+        return std::vector<short>(); // Un polinomio constante tiene derivada 0.
     }
-    return res;
+
+    std::vector<short> derivada(coeficientes.size() - 1);
+    long unsigned int indice = 1; // Comenzamos en 1 porque la derivada de un término constante es 0.
+    while (indice < coeficientes.size()) {
+        derivada[indice - 1] = calc.mult(indice, coeficientes[indice]);
+        indice++;
+    }
+    return derivada;
 }
 
 short Polinomio::evaluarPolinomio(std::vector<short> coeficientes, short x) {
-    short res = 0;
-    for (long unsigned int j = 0; j < coeficientes.size(); j++){
-        res = calc.suma(res, calc.mult(coeficientes[j],_gfalog[x*j % 255]));
+    short polEvaluado = 0;
+    long unsigned int indice = 0;
+    while (indice < coeficientes.size()) {
+        polEvaluado = calc.suma(polEvaluado, calc.mult(coeficientes[indice], _gfalog[x * indice % 255]));
+        indice++;
     }
-    return res;
+    return polEvaluado;
 }
 
 std::vector<short> Polinomio::multiplicarPolinomios(std::vector<short> polinomio1, std::vector<short> polinomio2) {
-    vector<short> res(polinomio1.size() + polinomio2.size() - 1, 0);  
-    for (long unsigned int i = 0; i < polinomio1.size(); i++){
-        for (long unsigned int j = 0; j < polinomio2.size(); j++){
-            res[i+j] = calc.suma(res[i+j], calc.mult(polinomio1[i], polinomio2[j]));
+    int nuevoTamanio = polinomio1.size() + polinomio2.size() - 1;
+    std::vector<short> polMultiplicado(nuevoTamanio, 0);
+    long unsigned int i = 0;
+    while (i < polinomio1.size()) {
+        long unsigned int j = 0;
+        while (j < polinomio2.size()) {
+            polMultiplicado[i + j] = calc.suma(polMultiplicado[i + j], calc.mult(polinomio1[i], polinomio2[j]));
+            j++;
         }
+        i++;
     }
-    return res;
+    printf("El polinomio multiplicado es:\n");
+    imprimirVectorPol(polMultiplicado);
+    return polMultiplicado;
 }
 
 
-std::vector<short> Polinomio::restarPolinomios(std::vector<short> poly1, std::vector<short> poly2) {
-    size_t maxDegree = std::max(poly1.size()-1, poly2.size()-1);
-
-    // Make the polynomials have the same size
-    std::vector<short> paddedPoly1(maxDegree+1, 0);
-    std::vector<short> paddedPoly2(maxDegree+1, 0);
-
-    for (size_t i = 0; i < poly1.size(); ++i) {
-        paddedPoly1[i] = poly1[i];
+std::vector<short> Polinomio::restarPolinomios(std::vector<short> polinomio1, std::vector<short> polinomio2) {
+    int grado;
+    if (polinomio1.size() > polinomio2.size()) {
+        grado = polinomio1.size();
+    } else {
+        grado = polinomio2.size();
     }
 
-    for (size_t i = 0; i < poly2.size(); ++i) {
-        paddedPoly2[i] = poly2[i];
+    // Hacer que los polinomios tengan el mismo tamaño
+    std::vector<short> paddedpolinomio1(grado, 0);
+    std::vector<short> paddedpolinomio2(grado, 0);
+
+    int indice = 0;
+    while (indice < polinomio1.size()) {
+        paddedpolinomio1[indice] = polinomio1[indice];
+        indice++;
     }
 
-    std::vector<short> result(maxDegree+1);
-    for (size_t i = 0; i < maxDegree+1; ++i) {
-        result[i] = calc.resta(paddedPoly1[i], paddedPoly2[i]);
+    indice = 0; // Reiniciar el índice para el segundo polinomio
+    while (indice < polinomio2.size()) {
+        paddedpolinomio2[indice] = polinomio2[indice];
+        indice++;
     }
 
-    // Remove leading zeros in the result
-    while (!result.empty() && result.back() == 0) {
-        result.pop_back();
+    std::vector<short> polRestado(grado);
+    indice = 0; // Reiniciar el índice para la resta
+    while (indice < grado) {
+        polRestado[indice] = calc.resta(paddedpolinomio1[indice], paddedpolinomio2[indice]);
+        indice++;
     }
 
-    return result;
+    // Eliminar ceros al principio del polRestado
+    while (!polRestado.empty() && polRestado.back() == 0) {
+        polRestado.pop_back();
+    }
+
+    return polRestado;
 }

@@ -13,6 +13,7 @@ Decodificador::Decodificador(const int &n, const int &r) {
     this->xr.push_back(1);
 }
 
+
 vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
     // Calcular la cantidad de bytes a leer
     int simbolos = n; //Cada simbolo es de 1 byte -> n bytes para leer.
