@@ -183,10 +183,6 @@ int main(int argc, char *argv[]) {
         }
 
         yDecodificado.erase(yDecodificado.end() - r, yDecodificado.end());
-        //transform(yDecodificado.begin(), yDecodificado.end(), yDecodificado.begin(), [](short value) {
-        //    return (value << 8) | ((value >> 8) & 0xFF);
-        //});
-
         outputFile.write(reinterpret_cast<char*>(yDecodificado.data()), yDecodificado.size() * sizeof(short));
         deco.incrementoBloque();
         totales++;

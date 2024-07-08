@@ -2,15 +2,10 @@
 #include "../include/Decodificador.h"
 
 
-Decodificador::Decodificador(const int &n, const int &r) {
-    // Inicializar variables miembro
-    this->n = n;
-    this->r = r;
-    this->cantBloquesLeidos = 0;
-    for (int i = 0; i < this->r; i++){
-        this->xr.push_back(0);
-    }
-    this->xr.push_back(1);
+Decodificador::Decodificador(const int &n, const int &r) : n(n), r(r), cantBloquesLeidos(0), polinomio_xr(r + 1) {
+    // Inicializar los primeros 'r' elementos con 0, el último elemento será 1 por defecto.
+    // Como ya se realizó la inicialización en la lista de inicialización, no es necesario hacer push_back.
+    polinomio_xr[r] = 1; // Establecer el último elemento a 1.
 }
 
 
@@ -37,21 +32,14 @@ vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
             return {};
         }
     }
-    //transform(datos.begin(), datos.end(), datos.begin(), [](short value) {
-    //    return (value << 8) | ((value >> 8) & 0xFF);
-    //});
-
     return datos;
 }
 
 vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n) {
     vector<short> indices;
 
-    // Calcular la cantidad de bytes a leer
-    int bytesALeer = n;
-
     // Calcular el desplazamiento
-    int desplazamiento = this->cantBloquesLeidos * bytesALeer;
+    int desplazamiento = this->cantBloquesLeidos * n;
 
     // Mover el puntero de lectura al inicio del bloque deseado
     archivo.seekg(desplazamiento, ios::beg);
@@ -75,7 +63,7 @@ void Decodificador::incrementoBloque() {
 }
 
 vector<short> Decodificador::obtenerPolinomioXR() {
-    return this->xr;
+    return this->polinomio_xr;
 }
 
 vector<short> Decodificador::leerBloqueSimbolos(ifstream &symbolfile) {
@@ -88,48 +76,58 @@ vector<short> Decodificador::leerIndiceBorraduras(ifstream &erasfile) {
     return encontrarBorraduras(erasfile, this->n);
 }
 
-vector<vector<short>> Decodificador::obtenerMatrizChequeo() {
-    vector<vector<short>> res;
-    for (int i = 0; i < this->r; i++){
-        vector<short> row;
-        for (int j = 0; j < this->n; j++){
-            row.push_back(_gfalog[((i+1)*j)%(255)]);
+std::vector<std::vector<short>> Decodificador::obtenerMatrizChequeo() {
+    std::vector<std::vector<short>> matriz;
+    int i = 0;
+    while (i < this->r) {
+        std::vector<short> fila;
+        int j = 0;
+        while (j < this->n) {
+            fila.push_back(_gfalog[((i + 1) * j) % 255]);
+            j++;
         }
-        res.push_back(row);
+        matriz.push_back(fila);
+        i++;
     }
-    return res;
+    return matriz;
 }
 
-vector<short> Decodificador::calcSindromePolinomial(const vector<short> &symbols, const vector<vector<short>> &H) {
-    vector<short> sindrome;
+std::vector<short> Decodificador::calcSindromePolinomial(const std::vector<short> &s, const std::vector<std::vector<short>> &H) {
+    std::vector<short> sindrome;
+    int i = 0;
 
     // Calcular el polinomio de síndrome
-    for (int i = 0; i < this->r; ++i) {
+    while (i < this->r) {
         short sum = 0;
-        for (int j = 0; j < this->n; ++j) {
-            sum = calc.suma(sum, calc.mult(symbols[this->n-j-1], H[i][j]));
+        int j = 0;
+        while (j < this->n) {
+            sum = calc.suma(sum, calc.mult(s[this->n - j - 1], H[i][j]));
+            j++;
         }
         sindrome.push_back(sum);
+        i++;
     }
 
     // Eliminar los coeficientes cero no significativos al final del polinomio
-    while (!sindrome.empty() && sindrome.back() == 0) {
-        sindrome.pop_back();
+    for (; !sindrome.empty() && sindrome.back() == 0; sindrome.pop_back()) {
+        // No se necesita cuerpo en el bucle for.
     }
 
     // Devolver el polinomio de síndrome calculado
     return sindrome;
 }
 
-vector<short> Decodificador::calcularPolBorraduras(const vector<short> &indicesBorrados) {
+std::vector<short> Decodificador::calcularPolBorraduras(const std::vector<short> &indicesBorrados) {
     // Polinomio inicializado como 1
-    vector<short> polinomioBorraduras(1,1);
+    std::vector<short> polinomioBorraduras(1, 1);
 
     // Multiplicar por cada índice de borrado
-    for (short indice : indicesBorrados) {
-        short coeficiente = _gfalog[indice];
-        vector<short> factor = {1,calc.resta(0, coeficiente)};
+    auto it = indicesBorrados.begin();
+    while (it != indicesBorrados.end()) {
+        short coeficiente = _gfalog[*it];
+        std::vector<short> factor = {1, calc.resta(0, coeficiente)};
         polinomioBorraduras = pol.multiplicarPolinomios(polinomioBorraduras, factor);
+        ++it;
     }
 
     return polinomioBorraduras;
@@ -230,8 +228,8 @@ vector<short> Decodificador::calcularSindromeModificado(const vector<short> &pol
     // Realizar la multiplicación de polinomios entre síndrome y localizador de borrado
     vector<short> producto = pol.multiplicarPolinomios(polinomioSindrome, indicesBorrados);
 
-    // Obtener el residuo de la división del polinomio resultante por el polinomio generador xr
-    vector<short> residuodivision = pol.dividirPolinomio(producto, this->xr).second;
+    // Obtener el residuo de la división del polinomio resultante por el polinomio generador polinomio_xr
+    vector<short> residuodivision = pol.dividirPolinomio(producto, this->polinomio_xr).second;
 
     // Devolver el residuo calculado
     return residuodivision;

@@ -11,7 +11,7 @@ private:
     int n, r;
     int rho;
     int cantBloquesLeidos;
-    vector<short> xr;
+    vector<short> polinomio_xr;
     Calculos calc = Calculos();
     Polinomio pol = Polinomio();
 
