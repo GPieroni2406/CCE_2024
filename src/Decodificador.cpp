@@ -147,53 +147,76 @@ bool Decodificador::bloqIncorregible(vector<short> indicesBorrados) {
     return bloqueIncorregible;
 }
 
-pair<vector<short>, vector<short>> Decodificador::euclides(const vector<short> &poly1,const vector<short> &poly2) {
-    double stop = (this->r + this->rho) / 2.0;
-    vector<short> r0 = poly2;
-    vector<short> r1 = poly1;
-    vector<short> t0 = {0};
-    vector<short> t1 = {1};
-    while (!(r1.size() - 1 < stop && stop <= r0.size() - 1)) {
-        pair <vector<short>, vector<short>> res = pol.dividirPolinomio(r0, r1);
-        vector<short> quotient = res.first;
-        r0 = r1;
-        r1 = res.second;
+std::pair<std::vector<short>, std::vector<short>> Decodificador::a_e_extendido(const std::vector<short> &polinomio2,const std::vector<short> &polinomio1) {
+    //Inicializo vectores
+    std::vector<short> r0 = polinomio2;
+    std::vector<short> t0 = {0};
+    std::vector<short> t1 = {1};
+    std::vector<short> r1 = polinomio1;
 
-        vector<short> temp = t0;
+    //obtengo valores
+    int redundancia = this->obtenerRedundancia();
+    int ro = this->obtenerRho();
+    double fin = static_cast<double>(redundancia + ro) / 2.0;
+
+    //Core del algoritmo euclides extendido
+    for (; !(r1.size() - 1 < fin && fin <= r0.size() - 1); ) {
+        std::pair<std::vector<short>, std::vector<short>> resultado = pol.dividirPolinomio(r0, r1);
+
+        std::vector<short> cociente = resultado.first;
+        std::vector<short> temp = t0;
         t0 = t1;
-        t1 = pol.restarPolinomios(temp, pol.multiplicarPolinomios(quotient, t1));
+        std::vector<short> mult = pol.multiplicarPolinomios(cociente, t1);
+        t1 = pol.restarPolinomios(temp, mult);
+
+        std::vector<short> temp_1 = r1;
+        r1 = resultado.second;
+        r0 = temp_1;
+
     }
-    return make_pair(t1,r1);
+
+    return std::make_pair(t1, r1);
 }
 
-pair<vector<short>, vector<short>> Decodificador::forneys(const vector<short> &errorLocatorPolyRootsIndexes,const  vector<short> &errorLocatorPoly,const vector<short> &errorEvaluatorPolynomial){
-    vector<short> errorValues;
-    vector<short> errorLocations;
-    vector<short> derivative = pol.derivarPolinomio(errorLocatorPoly);
+std::pair<std::vector<short>, std::vector<short>> Decodificador::algoritmo_f( const std::vector<short> &polinomioEvaluadorErrores,const std::vector<short> &indices, const std::vector<short> &p_localizador) {
+    
+    std::vector<short> ubiErrores;
+    std::vector<short> derivada;
+    std::vector<short> errores;
+    if (indices.empty()) {
+        return std::make_pair(errores, ubiErrores);
+    }
 
-    if (errorLocatorPolyRootsIndexes.empty()){
-        return make_pair(errorValues, errorLocations);
+    derivada = pol.derivarPolinomio(p_localizador);
+    size_t indice = 0;
+    while (indice < indices.size()) {
+        short i = indices[indice];
+        short evaluacion1 = pol.evaluarPolinomio(polinomioEvaluadorErrores, i);
+        short evaluacion2 = pol.evaluarPolinomio(derivada, i);
+        short division = calc.division(evaluacion1,evaluacion2);
+        short mult = calc.mult(255,division);
+        errores.push_back(mult);
+        ubiErrores.push_back((255 - i) % 255);
+        indice++;
     }
-    
-    for (short i : errorLocatorPolyRootsIndexes){
-        errorValues.push_back(calc.mult(255, calc.division(pol.evaluarPolinomio(errorEvaluatorPolynomial, i), pol.evaluarPolinomio(derivative, i))));
-        errorLocations.push_back((255 - i) % 255);
-    }
-    
-    return make_pair(errorValues, errorLocations);
+
+    return std::make_pair(errores, ubiErrores);
 }
 
-vector<short> Decodificador::decodificar(const vector<short> &palabraRecibida, const vector<short> &ubicacionesErrores, const vector<short> &valoresErrores) {
-    int j=0;
-    vector<short> decodedWord = palabraRecibida;
-    for (auto i: ubicacionesErrores){
-        if (i < (int)palabraRecibida.size()){
-            decodedWord[this->n - i - 1] = calc.resta(palabraRecibida[this->n - i - 1], valoresErrores[j]);
+std::vector<short> Decodificador::decodificar(const std::vector<short> &palabraRecibida,const std::vector<short> &valoresErrores, const std::vector<short> &ubicacionesErrores) {
+    int indiceValorError = 0;
+    std::vector<short> palabraDecodificada = palabraRecibida;
+    size_t indice = 0;
+    while (indice < ubicacionesErrores.size()) {
+        if (ubicacionesErrores[indice] < static_cast<int>(palabraRecibida.size())) {
+            int pos = this->n - ubicacionesErrores[indice] - 1;
+            palabraDecodificada[pos] = calc.resta(palabraRecibida[this->n - ubicacionesErrores[indice] - 1], valoresErrores[indiceValorError]);
         }
-        j++;
+        indiceValorError++;
+        indice++;
     }
 
-    return decodedWord;
+    return palabraDecodificada;
 }
 
 vector<short> Decodificador::obtenerPolinomioLocalizador(const vector<short> &polinomioBorrados, const vector<short> &polinomioErrores) {

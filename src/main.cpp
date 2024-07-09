@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
                 imprimirVector(modifiedSyndromePolynomial);
                 printf("Este es el polinomio XR:\n");
                 imprimirVector(deco.obtenerPolinomioXR());
-                pair<vector<short>, vector<short>> res = deco.euclides(modifiedSyndromePolynomial, deco.obtenerPolinomioXR());
+                pair<vector<short>, vector<short>> res = deco.a_e_extendido(deco.obtenerPolinomioXR(),modifiedSyndromePolynomial);
 
                 vector<short> errorLocatorPolynomial = res.first;
                 printf("Este es el polinomio delta:\n");
@@ -163,13 +163,13 @@ int main(int argc, char *argv[]) {
                 vector<short> rootsIndexes = deco.raicesNoNulas(errorLocatorPolynomial);
 
                 if (!rootsIndexes.empty()) {                  
-                    pair<vector<short>, vector<short>> error = deco.forneys(rootsIndexes, errorLocatorPolynomial, errorEvaluatorPolynomial);
+                    pair<vector<short>, vector<short>> error = deco.algoritmo_f(errorEvaluatorPolynomial,rootsIndexes, errorLocatorPolynomial);
                     vector<short> errorValues = error.first;
                     vector<short> errorLocations = error.second;
                     if (errorValues.empty() || errorLocations.empty()) {
                         incorregibles++;
                     } else {
-                        yDecodificado = deco.decodificar(y, errorLocations, errorValues);
+                        yDecodificado = deco.decodificar(y,errorValues,errorLocations);
                         printf("Este es el vector y decodificado:\n");
                         imprimirVector(yDecodificado);
                         corregidos++;

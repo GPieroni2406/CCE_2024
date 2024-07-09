@@ -28,6 +28,15 @@ public:
     // Métodos de inicialización y gestión de estado
     void incrementoBloque();
     vector<short> obtenerPolinomioXR();
+        // Método para obtener el valor de 'r'
+    int obtenerRedundancia() const {
+        return this->r;
+    }
+
+    // Método para obtener el valor de 'rho'
+    int obtenerRho() const {
+        return this->rho;
+    }
 
     // Métodos de cálculo
     vector<vector<short>> obtenerMatrizChequeo();
@@ -35,11 +44,11 @@ public:
     vector<short> calcularPolBorraduras(const vector<short> &indexErasures);
     bool bloqIncorregible(vector<short> indexErasures);
     vector<short> calcularSindromeModificado(const vector<short> &syndromePolynomial, const vector<short> &erasureLocatorPolynomial);
-    pair<vector<short>, vector<short>> euclides(const vector<short> &poly1, const vector<short> &poly2);
+    pair<vector<short>, vector<short>> a_e_extendido(const vector<short> &poly2,const vector<short> &poly1);
     vector<short> obtenerPolinomioLocalizador(const vector<short> &erasureLocatorPoly, const vector<short> &calculateErrorLocatorPoly);
     vector<short> raicesNoNulas(const vector<short> &errorLocatorPoly);
-    pair<vector<short>, vector<short>> forneys(const vector<short> &errorLocatorPolyRootsIndexes,const  vector<short> &errorLocatorPoly,const vector<short> &errorEvaluatorPolynomial);
+    pair<vector<short>, vector<short>> algoritmo_f(const vector<short> &errorEvaluatorPolynomial,const vector<short> &errorLocatorPolyRootsIndexes,const  vector<short> &errorLocatorPoly);
 
     // Método de decodificación
-    vector<short> decodificar(const vector<short> &receivedWord, const vector<short> &errorLocations, const vector<short> &errorValues);
+    vector<short> decodificar(const vector<short> &receivedWord,const vector<short> &errorValues,const vector<short> &errorLocations);
 };
