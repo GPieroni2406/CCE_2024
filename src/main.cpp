@@ -87,36 +87,37 @@ typedef struct {
 
 int main(int argc, char *argv[]) {
     int n, r;
+    int q = 256; //Por ahora fijo.
     ManejadorDeArchivos archivos;
 
-    string symbolFilePath = "../simb_borr/misdatos.ech";
-    string erasFilePath = "../simb_borr/misdatos.eras";
-    string outputFilePath = "../salidas/salida.dat";
+    string archivo_simbolos;
+    string archivo_borraduras;
+    string archivo_salida;
 
-    bool verificarPrecondiciones = archivos.procesarArgumentos(n, r, symbolFilePath, erasFilePath, outputFilePath, argc, argv);
+    bool verificarPrecondiciones = archivos.procesarArgumentos(n, r, archivo_simbolos, archivo_borraduras, archivo_salida, argc, argv);
 
     if (!verificarPrecondiciones) {
         return 0;
     }
 
-    bool abrir = archivos.abrirArchivos(symbolFilePath, erasFilePath, outputFilePath);
+    bool abrir = archivos.abrirArchivos(archivo_simbolos, archivo_borraduras, archivo_salida);
     if (!abrir) {
         return 0;
     }
 
-    ifstream &sfile = archivos.getSymbolFile();
-    ifstream &efile = archivos.getErasureFile();
-    ofstream &outputFile = archivos.getOutputFile();
+    ifstream &simbolos = archivos.getSymbolFile();
+    ifstream &borraduras = archivos.getErasureFile();
+    ofstream &salida = archivos.getOutputFile();
 
     auto inicioReloj = chrono::high_resolution_clock::now();
-    Decodificador deco(n,256,r);
+    Decodificador deco(n,q,r);
 
     int totales = 0;
     int corregidos = 0;
     int incorregibles = 0;
     int correctos = 0;
 
-    vector<short> y = deco.leerBloqueSimbolos(sfile);
+    vector<short> y = deco.leerBloqueSimbolos(simbolos);
     vector<vector<short>> matrizParidad = deco.obtenerMatrizChequeo();
     printf("Esta es la matriz de chequeo\n");
     imprimirMatrizParidad(matrizParidad);
@@ -126,7 +127,7 @@ int main(int argc, char *argv[]) {
         vector<short> yDecodificado = y;
         printf("Este es el vector y que llego:\n");
         imprimirVector(yDecodificado);
-        vector<short> indiceBorraduras = deco.leerIndiceBorraduras(efile);
+        vector<short> indiceBorraduras = deco.leerIndiceBorraduras(borraduras);
         printf("Estas son las posiciones con borraduras en el bloque actual:\n");
         imprimirIndices(indiceBorraduras);
         if (incorregible(indiceBorraduras, deco)) {
@@ -183,10 +184,10 @@ int main(int argc, char *argv[]) {
         }
 
         yDecodificado.erase(yDecodificado.end() - r, yDecodificado.end());
-        outputFile.write(reinterpret_cast<char*>(yDecodificado.data()), yDecodificado.size() * sizeof(short));
+        salida.write(reinterpret_cast<char*>(yDecodificado.data()), yDecodificado.size() * sizeof(short));
         deco.incrementoBloque();
         totales++;
-        y = deco.leerBloqueSimbolos(sfile);
+        y = deco.leerBloqueSimbolos(simbolos);
         cont ++;
     }
     archivos.cerrarArchivos();

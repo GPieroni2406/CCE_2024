@@ -21,7 +21,7 @@ public:
     std::ofstream& getOutputFile();
     void imprimirMensajeDeAyuda();
     void imprimirErrorEspecifico(const std::string& mensaje);
-    bool procesarArgumentos(int &n, int &r, std::string &symbolfile, std::string &erasfile, std::string &outputfile, int argc, char *argv[]);
+    bool procesarArgumentos(int &n, int &r, std::string &archivo_simbolos, std::string &archivo_borraduras, std::string &archivo_salida, int argc, char *argv[]);
     void cerrarArchivos();
 };
 

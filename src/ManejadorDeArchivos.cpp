@@ -48,7 +48,7 @@ void ManejadorDeArchivos::imprimirErrorEspecifico(const std::string& mensaje) {
     std::cerr << "Ejecute sin argumentos para ver las instrucciones de uso." << std::endl;
 }
 
-bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &symbolfile, std::string &erasfile, std::string &outputfile, int argc, char *argv[]) {
+bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &archivo_simbolos, std::string &archivo_borraduras, std::string &archivo_salida, int argc, char *argv[]) {
     bool flagR = false;
     bool flagN = false;
     if (((argc == 2) && (std::string(argv[1]) == "-h")) || argc == 1){
@@ -67,13 +67,13 @@ bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &symbol
             flagR = true;
             i++; 
         } else if (arg == "-s" && i + 1 < argc) {
-            symbolfile = argv[i + 1];
+            archivo_simbolos = argv[i + 1];
             i++; 
         } else if (arg == "-e" && i + 1 < argc) {
-            erasfile = argv[i + 1];
+            archivo_borraduras = argv[i + 1];
             i++; 
         } else if (arg == "-o" && i + 1 < argc) {
-            outputfile = argv[i + 1];
+            archivo_salida = argv[i + 1];
             i++;
         } else {
             imprimirMensajeDeAyuda();
