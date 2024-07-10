@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
     ofstream &outputFile = archivos.getOutputFile();
 
     auto inicioReloj = chrono::high_resolution_clock::now();
-    Decodificador deco(n, r);
+    Decodificador deco(n,256,r);
 
     int totales = 0;
     int corregidos = 0;

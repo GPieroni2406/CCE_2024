@@ -9,8 +9,6 @@ using namespace std;
 #define Calc
 
 class Calculos{
-    private:
-        int q = 256;
     public:
         Calculos(){};
 
@@ -23,8 +21,6 @@ class Calculos{
         short inv(int num);
 
         short division(int x, int y);
-
-        int obtener_q();
 };
 
 #endif

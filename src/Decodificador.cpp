@@ -2,7 +2,7 @@
 #include "../include/Decodificador.h"
 
 
-Decodificador::Decodificador(const int &n, const int &r) : n(n), r(r), cantBloquesLeidos(0), polinomio_xr(r + 1) {
+Decodificador::Decodificador(const int &n,const int &q,const int &r) : n(n), q(q) ,r(r), cantBloquesLeidos(0), polinomio_xr(r + 1) {
     // Inicializar los primeros 'r' elementos con 0, el último elemento será 1 por defecto.
     // Como ya se realizó la inicialización en la lista de inicialización, no es necesario hacer push_back.
     polinomio_xr[r] = 1; // Establecer el último elemento a 1.
@@ -83,7 +83,7 @@ std::vector<std::vector<short>> Decodificador::obtenerMatrizChequeo() {
         std::vector<short> fila;
         int j = 0;
         while (j < this->n) {
-            fila.push_back(_gfalog[((i + 1) * j) % 255]);
+            fila.push_back(_gfalog[((i + 1) * j) % (obtenerQ()-1)]);
             j++;
         }
         matriz.push_back(fila);
@@ -194,26 +194,28 @@ std::pair<std::vector<short>, std::vector<short>> Decodificador::algoritmo_f( co
         short evaluacion1 = pol.evaluarPolinomio(polinomioEvaluadorErrores, i);
         short evaluacion2 = pol.evaluarPolinomio(derivada, i);
         short division = calc.division(evaluacion1,evaluacion2);
-        short mult = calc.mult(255,division);
+        short mult = calc.mult((obtenerQ()-1),division);
         errores.push_back(mult);
-        ubiErrores.push_back((255 - i) % 255);
+        ubiErrores.push_back(((obtenerQ()-1) - i) % (obtenerQ()-1));
         indice++;
     }
 
     return std::make_pair(errores, ubiErrores);
 }
 
-std::vector<short> Decodificador::decodificar(const std::vector<short> &palabraRecibida,const std::vector<short> &valoresErrores, const std::vector<short> &ubicacionesErrores) {
-    int indiceValorError = 0;
+std::vector<short> Decodificador::decodificar(const std::vector<short> &palabraRecibida, const std::vector<short> &valoresErrores, const std::vector<short> &ubicacionesErrores) {
     std::vector<short> palabraDecodificada = palabraRecibida;
-    size_t indice = 0;
-    while (indice < ubicacionesErrores.size()) {
-        if (ubicacionesErrores[indice] < static_cast<int>(palabraRecibida.size())) {
-            int pos = this->n - ubicacionesErrores[indice] - 1;
-            palabraDecodificada[pos] = calc.resta(palabraRecibida[this->n - ubicacionesErrores[indice] - 1], valoresErrores[indiceValorError]);
+    size_t totalErrores = ubicacionesErrores.size();
+    size_t indiceError = 0;
+
+    while (indiceError < totalErrores) {
+        int ubicacionError = ubicacionesErrores[indiceError];
+        if (ubicacionError < static_cast<int>(palabraRecibida.size())) {
+            int indicePalabra = this->n - ubicacionError - 1;
+            short valorCorreccion = valoresErrores[indiceError];
+            palabraDecodificada[indicePalabra] = calc.resta(palabraDecodificada[indicePalabra], valorCorreccion);
         }
-        indiceValorError++;
-        indice++;
+        indiceError++;
     }
 
     return palabraDecodificada;
@@ -224,27 +226,29 @@ vector<short> Decodificador::obtenerPolinomioLocalizador(const vector<short> &po
     return pol.multiplicarPolinomios(polinomioBorrados, polinomioErrores);
 }
 
-vector<short> Decodificador::raicesNoNulas(const vector<short> &polinomio) {
-    vector<short> index = {};        
-    int amountRoots = 0;    
-    int degree = (int)polinomio.size() - 1;  
+std::vector<short> Decodificador::raicesNoNulas(const std::vector<short> &polinomio) {
+    std::vector<short> indices = {};
+    int cantidadRaices = 0;
+    int grado = static_cast<int>(polinomio.size()) - 1;
+    int contRaices = 1;
 
-     if (!polinomio.empty()){
-         for (int i=1; i < 256 && amountRoots < degree; i++){
-            if (pol.evaluarPolinomio(polinomio, i) == 0){
-                printf("raiz encontrada en rootIndexes %d\n",i);
-                index.push_back(i);
-                amountRoots++;
+    if (!polinomio.empty()) {
+        while (contRaices < obtenerQ() && cantidadRaices < grado) {
+            short evaluar = pol.evaluarPolinomio(polinomio, contRaices);
+            if (evaluar == 0) { //Encontre una raiz
+                cantidadRaices++;
+                printf("raiz encontrada en indices %d\n", contRaices);
+                indices.push_back(contRaices);
             }
+            contRaices++;
         }
-        }
-    if (amountRoots == degree){
-        return index;
     }
-    else {
+
+    if (cantidadRaices < grado) {
         printf("Se encontraron menos raices que el grado del polinomio.\n");
         return {};
-    }    
+    }
+    return indices;
 }
 
 vector<short> Decodificador::calcularSindromeModificado(const vector<short> &polinomioSindrome, const vector<short> &indicesBorrados) {

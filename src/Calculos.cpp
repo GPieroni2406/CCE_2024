@@ -20,7 +20,3 @@ short Calculos::inv(int num){
 short Calculos::division(int x, int y){
     return gfmul(x, gfinv(y));
 }
-
-int Calculos::obtener_q(){
-    return this->q;
-}

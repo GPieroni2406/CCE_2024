@@ -8,7 +8,7 @@ using namespace std;
 
 class Decodificador {
 private: 
-    int n, r;
+    int q, n, r;
     int rho;
     int cantBloquesLeidos;
     vector<short> polinomio_xr;
@@ -17,7 +17,7 @@ private:
 
 public:
     // Constructor
-    Decodificador(const int &n, const int &r);
+    Decodificador(const int &n,const int &q,const int &r);
 
     // Métodos para lectura de datos
     vector<short> leerBloque(ifstream &symbolfile, const int &n);
@@ -36,6 +36,11 @@ public:
     // Método para obtener el valor de 'rho'
     int obtenerRho() const {
         return this->rho;
+    }
+
+    // Método para obtener el valor de 'rho'
+    int obtenerQ() const {
+        return this->q;
     }
 
     // Métodos de cálculo
