@@ -1,24 +1,23 @@
 #include "../include/ManejadorDeArchivos.h" // Asegúrate de que la ruta sea correcta
 
 ManejadorDeArchivos::ManejadorDeArchivos() {
-    // Implementación del constructor si es necesario
 }
 
-bool ManejadorDeArchivos::abrirArchivos(const std::string& symbolFilePath, const std::string& erasureFilePath, const std::string& outputFilePath) {
-    sfile.open(symbolFilePath, std::ios::binary);
-    if (!sfile.is_open()) {
+bool ManejadorDeArchivos::abrirArchivos(const std::string& ruta_simbolos, const std::string& ruta_borraduras, const std::string& ruta_salida) {
+    simbolos.open(ruta_simbolos, std::ios::binary);
+    if (!simbolos.is_open()) {
         imprimirErrorEspecifico("Error, no se pueden leer los símbolos.");
         return false;
     }
 
-    efile.open(erasureFilePath, std::ios::binary);
-    if (!efile.is_open()) {
+    borraduras.open(ruta_borraduras, std::ios::binary);
+    if (!borraduras.is_open()) {
         imprimirErrorEspecifico("Error, no se pueden leer las borraduras.");
         return false;
     }
 
-    outputFile.open(outputFilePath);
-    if (!outputFile.is_open()) {
+    salida.open(ruta_salida);
+    if (!salida.is_open()) {
         imprimirErrorEspecifico("Error, no se puede abrir el archivo de salida.");
         return false;
     }
@@ -26,21 +25,20 @@ bool ManejadorDeArchivos::abrirArchivos(const std::string& symbolFilePath, const
     return true;
 }
 
-std::ifstream& ManejadorDeArchivos::getSymbolFile() {
-    return sfile;
+std::ifstream& ManejadorDeArchivos::obtener_simbolo() {
+    return simbolos;
 }
 
-std::ifstream& ManejadorDeArchivos::getErasureFile() {
-    return efile;
+std::ifstream& ManejadorDeArchivos::obtener_borradura() {
+    return borraduras;
 }
 
-std::ofstream& ManejadorDeArchivos::getOutputFile() {
-    return outputFile;
+std::ofstream& ManejadorDeArchivos::obtener_salida() {
+    return salida;
 }
 
 void ManejadorDeArchivos::imprimirMensajeDeAyuda() {
-    std::cerr << "Uso de: rsdecode -n n -r r -s symbolfile -e erasfile -o outputfile:" << std::endl;
-    std::cerr << "Ejemplo: rsdecode -n numeroN -r numeroR -s etc/codificados.ech -e etc/codificados.eras -o output.sdat" << std::endl;
+    std::cerr << "Usted debe llamar al programa de esta forma -> rsdecode -n n -r r -s symbolfile -e erasimbolos -o salida:" << std::endl;
 }
 
 void ManejadorDeArchivos::imprimirErrorEspecifico(const std::string& mensaje) {
@@ -48,40 +46,50 @@ void ManejadorDeArchivos::imprimirErrorEspecifico(const std::string& mensaje) {
     std::cerr << "Ejecute sin argumentos para ver las instrucciones de uso." << std::endl;
 }
 
-bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &archivo_simbolos, std::string &archivo_borraduras, std::string &archivo_salida, int argc, char *argv[]) {
-    bool flagR = false;
-    bool flagN = false;
-    if (((argc == 2) && (std::string(argv[1]) == "-h")) || argc == 1){
+bool ManejadorDeArchivos::verificar_indicador(const std::string &indicador, const std::string &valor, int &n, int &r, std::string &archivo_simbolos, std::string &archivo_borraduras, std::string &archivo_salida, bool &bandera_tamanio, bool &bandera_redundancia, bool &bandera_simbolo, bool &bandera_Borradura, bool &bandera_salida) {
+    if (indicador == "-n") {
+        n = std::atoi(valor.c_str());
+        bandera_tamanio = true;
+    } else if (indicador == "-r") {
+        r = std::atoi(valor.c_str());
+        bandera_redundancia = true;
+    } else if (indicador == "-s") {
+        archivo_simbolos = valor;
+        bandera_simbolo = true;
+    } else if (indicador == "-e") {
+        archivo_borraduras = valor;
+        bandera_Borradura = true;
+    } else if (indicador == "-o") {
+        archivo_salida = valor;
+        bandera_salida = true;
+    } else {
+        imprimirErrorEspecifico("Argumento desconocido: " + indicador);
+        return false;
+    }
+    return true;
+}
+
+bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &archivo_simbolos, std::string &archivo_borraduras, std::string &archivo_salida, int argc, char *argv[],int q) {
+    int indice = 1;
+    bool bandera_tamanio = false, bandera_redundancia = false, bandera_simbolo = false, bandera_Borradura = false, bandera_salida = false;
+
+    if (argc == 1 || (argc == 2 && std::string(argv[1]) == "-h")) {
         imprimirMensajeDeAyuda();
-        return false; 
+        return false;
     }
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
 
-        if (arg == "-n" && i + 1 < argc) {
-            n = std::atoi(argv[i + 1]);
-            flagN = true;
-            i++; 
-        } else if (arg == "-r" && i + 1 < argc) {
-            r = std::atoi(argv[i + 1]);
-            flagR = true;
-            i++; 
-        } else if (arg == "-s" && i + 1 < argc) {
-            archivo_simbolos = argv[i + 1];
-            i++; 
-        } else if (arg == "-e" && i + 1 < argc) {
-            archivo_borraduras = argv[i + 1];
-            i++; 
-        } else if (arg == "-o" && i + 1 < argc) {
-            archivo_salida = argv[i + 1];
-            i++;
-        } else {
-            imprimirMensajeDeAyuda();
-            return false; 
+    while (indice < argc - 1) { // Asegurarse de que haya un valor después de cada indicador
+        std::string indicador = argv[indice];
+        std::string valor = argv[indice + 1];
+
+        if (!verificar_indicador(indicador, valor, n, r, archivo_simbolos, archivo_borraduras, archivo_salida, bandera_tamanio, bandera_redundancia, bandera_simbolo, bandera_Borradura, bandera_salida)) {
+            return false; // Si hay un error, detener el procesamiento
         }
+            indice += 2; // Avanzar al siguiente par de indicador-valor
     }
 
-    if (!flagN || !flagR || n <= 0 || r < 0 || n <= r || n >= 256){
+    // Verificar que todos los indicadores necesarios estén presentes y sean válidos
+    if (!bandera_tamanio || !bandera_redundancia || !bandera_simbolo || !bandera_Borradura || !bandera_salida || n >= q || r < 0 || n <= 0 || n <= r) {
         imprimirErrorEspecifico("Error en los argumentos proporcionados.");
         return false;
     }
@@ -90,7 +98,7 @@ bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &archiv
 }
 
 void ManejadorDeArchivos::cerrarArchivos() {
-    if (sfile.is_open()) sfile.close();
-    if (efile.is_open()) efile.close();
-    if (outputFile.is_open()) outputFile.close();
+    if (simbolos.is_open()) simbolos.close();
+    if (borraduras.is_open()) borraduras.close();
+    if (salida.is_open()) salida.close();
 }

@@ -1,22 +1,35 @@
 #include <chrono>
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <algorithm>  
-#include "../include/Decodificador.h"
 #include "../include/ManejadorDeArchivos.h"
+#include "../include/Decodificador.h"
 using namespace std;
 
-void imprimirTiempos(chrono::seconds secondsDuration, int corregidos, int incorregibles, int correctos, int totales) {
-    cout << "Tiempo: " << secondsDuration.count() << endl;
-    cout << "Bloques Corregidos: " << corregidos << endl;
-    cout << "Bloques Incorregibles: " << incorregibles << endl;
-    cout << "Bloques Correctos: " << correctos << endl;
-    cout << "Total: " << totales << endl;
+void escribirEnArchivo(std::ofstream& salida, const std::vector<short>& vectorDecodificado) {
+    size_t tamanioTotalBytes = vectorDecodificado.size() * sizeof(short);
+    const char* datosEnBytes = reinterpret_cast<const char*>(vectorDecodificado.data());
+    salida.write(datosEnBytes, tamanioTotalBytes);
+}
+
+void imprimirTiempos(std::chrono::seconds secondsDuration, int corregidos, int incorregibles, int correctos, int totales) {
+    printf("Tiempo transcurrido: %lld\n", static_cast<long long>(secondsDuration.count()));
+    printf("Incorregibles: %d bloques\n", incorregibles);
+    printf("Correctos: %d bloques\n", correctos);
+    printf("Corregidos: %d bloques\n", corregidos);
+    printf("Total: %d bloques\n", totales);
 }
 
 bool incorregible(const vector<short> &indiceBorraduras, Decodificador &deco) {
     return deco.bloqIncorregible(indiceBorraduras);
+}
+
+void limpiarVector(vector<short> &v,int r) {
+    for (int i = 0; i < r; ++i) {
+        v.pop_back();
+    }
 }
 
 vector<short> calcularSindrome(const vector<short> &y, const vector<vector<short>> &matrizParidad, Decodificador &deco) {
@@ -79,12 +92,6 @@ void comprueboEndian(){
         std::cout << "Big endian" << std::endl;
 }
 
-typedef struct {
-    char fileType[4];
-    int version;
-    int recordCount;
-} Header;
-
 int main(int argc, char *argv[]) {
     int n, r;
     int q = 256; //Por ahora fijo.
@@ -94,7 +101,7 @@ int main(int argc, char *argv[]) {
     string archivo_borraduras;
     string archivo_salida;
 
-    bool verificarPrecondiciones = archivos.procesarArgumentos(n, r, archivo_simbolos, archivo_borraduras, archivo_salida, argc, argv);
+    bool verificarPrecondiciones = archivos.procesarArgumentos(n, r, archivo_simbolos, archivo_borraduras, archivo_salida, argc, argv,q);
 
     if (!verificarPrecondiciones) {
         return 0;
@@ -105,28 +112,36 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    ifstream &simbolos = archivos.getSymbolFile();
-    ifstream &borraduras = archivos.getErasureFile();
-    ofstream &salida = archivos.getOutputFile();
+    //Inicializo bloques 
+    int incorregibles = 0;
+    int corregidos = 0;
+    int correctos = 0;
+    int totales = 0;
 
-    auto inicioReloj = chrono::high_resolution_clock::now();
+   //Inicio tiempo.
+    std::chrono::time_point<std::chrono::high_resolution_clock> inicioReloj = std::chrono::high_resolution_clock::now();
+    //Archivo de salida vacio.
+    ofstream &salida = archivos.obtener_salida();
+    //inicializo el decodificador
     Decodificador deco(n,q,r);
 
-    int totales = 0;
-    int corregidos = 0;
-    int incorregibles = 0;
-    int correctos = 0;
 
-    vector<short> y = deco.leerBloqueSimbolos(simbolos);
+    //Obtengo matriz chequeo de paridad
     vector<vector<short>> matrizParidad = deco.obtenerMatrizChequeo();
-    printf("Esta es la matriz de chequeo\n");
-    imprimirMatrizParidad(matrizParidad);
-    int cont=0;
+
+    //Obtengo simbolos y borraduras.
+    ifstream &simbolos = archivos.obtener_simbolo();
+
+    //Leeo el primer bloque para entrar al while
+    vector<short> y = deco.leerBloqueSimbolos(simbolos);
+
+    //Leeo bloque de borraduras.
+    ifstream &borraduras = archivos.obtener_borradura();
+    
     while (!y.empty()) {
-    //while (cont<1){
-        vector<short> yDecodificado = y;
+        vector<short> vector_decodificado = y;
         printf("Este es el vector y que llego:\n");
-        imprimirVector(yDecodificado);
+        imprimirVector(y);
         vector<short> indiceBorraduras = deco.leerIndiceBorraduras(borraduras);
         printf("Estas son las posiciones con borraduras en el bloque actual:\n");
         imprimirIndices(indiceBorraduras);
@@ -134,68 +149,83 @@ int main(int argc, char *argv[]) {
             incorregibles++;
         } 
         else {
-            vector<short> syndromePolynomial = calcularSindrome(y, matrizParidad, deco);
+            vector<short> sindrome = calcularSindrome(y, matrizParidad, deco);
             printf("Este es el sindrome:\n");
-            imprimirVector(syndromePolynomial);
-            if (!syndromePolynomial.empty()) {
-                vector<short> erasureLocatorPolynomial = deco.calcularPolBorraduras(indiceBorraduras);
+            imprimirVector(sindrome);
+            
+            //Si el sindrome esta vacio gane, no hay errores!
+            if(sindrome.empty()){
+                correctos++;
+            }
+            else{ //Verifico errores .
+                vector<short> localizador_borraduras = deco.calcularPolBorraduras(indiceBorraduras);
                 printf("Este es el Polinomio de Borraduras:\n");
-                imprimirVector(erasureLocatorPolynomial);
+                imprimirVector(localizador_borraduras);
 
-                vector<short> modifiedSyndromePolynomial = deco.calcularSindromeModificado(syndromePolynomial, erasureLocatorPolynomial);
+                vector<short> modifiedSindrome = deco.calcularSindromeModificado(sindrome, localizador_borraduras);
                 printf("Este es el Sindrome Modificado:\n");
-                imprimirVector(modifiedSyndromePolynomial);
+                imprimirVector(modifiedSindrome);
                 printf("Este es el polinomio XR:\n");
                 imprimirVector(deco.obtenerPolinomioXR());
-                pair<vector<short>, vector<short>> res = deco.a_e_extendido(deco.obtenerPolinomioXR(),modifiedSyndromePolynomial);
+                pair<vector<short>, vector<short>> res = deco.a_e_extendido(deco.obtenerPolinomioXR(),modifiedSindrome);
 
-                vector<short> errorLocatorPolynomial = res.first;
+                vector<short> localizador_errores = res.first;
                 printf("Este es el polinomio delta:\n");
-                imprimirVector(errorLocatorPolynomial);
+                imprimirVector(localizador_errores);
                 
-                vector<short> errorEvaluatorPolynomial = res.second;
+                vector<short> evaluador_errores = res.second;
                 printf("Este es el polinomio gama:\n");
-                imprimirVector(errorEvaluatorPolynomial);
+                imprimirVector(evaluador_errores);
 
-                errorLocatorPolynomial = deco.obtenerPolinomioLocalizador(erasureLocatorPolynomial, errorLocatorPolynomial);
+                localizador_errores = deco.obtenerPolinomioLocalizador(localizador_borraduras, localizador_errores);
                 printf("Este es el polinomio delta modificado:\n");
-                imprimirVector(errorLocatorPolynomial);
+                imprimirVector(localizador_errores);
 
-                vector<short> rootsIndexes = deco.raicesNoNulas(errorLocatorPolynomial);
+                vector<short> indices_raices = deco.raicesNoNulas(localizador_errores);
 
-                if (!rootsIndexes.empty()) {                  
-                    pair<vector<short>, vector<short>> error = deco.algoritmo_f(errorEvaluatorPolynomial,rootsIndexes, errorLocatorPolynomial);
-                    vector<short> errorValues = error.first;
-                    vector<short> errorLocations = error.second;
-                    if (errorValues.empty() || errorLocations.empty()) {
-                        incorregibles++;
-                    } else {
-                        yDecodificado = deco.decodificar(y,errorValues,errorLocations);
+                if (indices_raices.size()>0) {
+                    //Aplico Forneys.       
+                    auto error = deco.algoritmo_f(evaluador_errores,indices_raices, localizador_errores);
+
+                    if (error.first.size() > 0 && error.second.size() > 0) {
+                        vector<short> errores = error.first; //Valores de los errores
+                        vector<short> ubicacion_errores = error.second; //Ubicacion de los errores
+                        vector_decodificado = deco.decodificar(y,errores,ubicacion_errores);
                         printf("Este es el vector y decodificado:\n");
-                        imprimirVector(yDecodificado);
+                        imprimirVector(vector_decodificado);
                         corregidos++;
+                    } else {//Bloque Incorregible!!!
+                        incorregibles++;
                     }
                 } else {
                     incorregibles++;
                 }
-            } else {
-                correctos++;
             }
         }
+        limpiarVector(vector_decodificado,r);
 
-        yDecodificado.erase(yDecodificado.end() - r, yDecodificado.end());
-        salida.write(reinterpret_cast<char*>(yDecodificado.data()), yDecodificado.size() * sizeof(short));
-        deco.incrementoBloque();
+        escribirEnArchivo(salida,vector_decodificado);
+
+        //Agrego otro bloque a los totales
         totales++;
+
+        //Incremento el contador
+        deco.incrementoBloque();
+        
+        //Leeo el proximo bloque de simbolos
         y = deco.leerBloqueSimbolos(simbolos);
-        cont ++;
     }
-    archivos.cerrarArchivos();
     printf("---------------------                  TERMINO LA EJECUCION                         ----------------------\n");
 
-    auto finReloj = chrono::high_resolution_clock::now();
-    auto secondsDuration = chrono::duration_cast<chrono::seconds>(finReloj - inicioReloj);
+    // Obtener el punto final en el tiempo
+    std::chrono::high_resolution_clock::time_point finReloj = std::chrono::high_resolution_clock::now();
 
+    // Calcular la duración en segundos
+    std::chrono::seconds secondsDuration = std::chrono::duration_cast<std::chrono::seconds>(finReloj - inicioReloj);
+    
     imprimirTiempos(secondsDuration, corregidos, incorregibles, correctos, totales);
+    
+    archivos.cerrarArchivos();
+    
     return 0;
 }
