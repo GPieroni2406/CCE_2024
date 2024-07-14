@@ -1,0 +1,70 @@
+---------------------                  TERMINO LA EJECUCION                         ----------------------
+Tiempo transcurrido: 118
+Incorregibles: 55 bloques
+Correctos: 456736 bloques
+Corregidos: 743209 bloques
+Total: 1200000 bloques
+"--------- resultados con delta = 0.00001 y rho = 0.02 -------------" 
+File 1: ..\simb_borr\bloques_p002.dat  File 2: ..\salidas\salida.dat
+Bits/symbol: 8  Field size: 256 Block length: 42  Threshold: 0
+EOF on file 1
+Total symb: 50400000  Blks: 1200000
+Error counts Bits:  201599455  Symbols:   50203637  Blocks:    1200000    >T: 1200000 
+Error rates  Bits:  5.000e-01  Symbols:  9.961e-01  Blocks:  1.000e+00 Bits/block: 167.99955 Symb/block: 41.83636
+"----------------------" 
+---------------------                  TERMINO LA EJECUCION                         ----------------------
+Tiempo transcurrido: 118
+Incorregibles: 55 bloques
+Correctos: 454256 bloques
+Corregidos: 745689 bloques
+Total: 1200000 bloques
+"--------- resultados con delta = 0.0001 y rho = 0.02 -------------" 
+File 1: ..\simb_borr\bloques_p002.dat  File 2: ..\salidas\salida.dat
+Bits/symbol: 8  Field size: 256 Block length: 42  Threshold: 0
+EOF on file 1
+Total symb: 50400000  Blks: 1200000
+Error counts Bits:  201592605  Symbols:   50203513  Blocks:    1200000    >T: 1200000 
+Error rates  Bits:  5.000e-01  Symbols:  9.961e-01  Blocks:  1.000e+00 Bits/block: 167.99384 Symb/block: 41.83626
+"----------------------" 
+---------------------                  TERMINO LA EJECUCION                         ----------------------
+Tiempo transcurrido: 121
+Incorregibles: 71 bloques
+Correctos: 435048 bloques
+Corregidos: 764881 bloques
+Total: 1200000 bloques
+"--------- resultados con delta = 0.001 y rho = 0.02 -------------" 
+File 1: ..\simb_borr\bloques_p002.dat  File 2: ..\salidas\salida.dat
+Bits/symbol: 8  Field size: 256 Block length: 42  Threshold: 0
+EOF on file 1
+Total symb: 50400000  Blks: 1200000
+Error counts Bits:  201596658  Symbols:   50203218  Blocks:    1200000    >T: 1200000 
+Error rates  Bits:  5.000e-01  Symbols:  9.961e-01  Blocks:  1.000e+00 Bits/block: 167.99722 Symb/block: 41.83602
+"----------------------" 
+---------------------                  TERMINO LA EJECUCION                         ----------------------
+Tiempo transcurrido: 146
+Incorregibles: 4826 bloques
+Correctos: 278846 bloques
+Corregidos: 916328 bloques
+Total: 1200000 bloques
+"--------- resultados con delta = 0.01 y rho = 0.02 -------------" 
+File 1: ..\simb_borr\bloques_p002.dat  File 2: ..\salidas\salida.dat
+Bits/symbol: 8  Field size: 256 Block length: 42  Threshold: 0
+EOF on file 1
+Total symb: 50400000  Blks: 1200000
+Error counts Bits:  201606810  Symbols:   50202868  Blocks:    1200000    >T: 1200000 
+Error rates  Bits:  5.000e-01  Symbols:  9.961e-01  Blocks:  1.000e+00 Bits/block: 168.00567 Symb/block: 41.83572
+"----------------------" 
+---------------------                  TERMINO LA EJECUCION                         ----------------------
+Tiempo transcurrido: 224
+Incorregibles: 574448 bloques
+Correctos: 2571 bloques
+Corregidos: 622981 bloques
+Total: 1200000 bloques
+"--------- resultados con delta = 0.1 y rho = 0.02 -------------" 
+File 1: ..\simb_borr\bloques_p002.dat  File 2: ..\salidas\salida.dat
+Bits/symbol: 8  Field size: 256 Block length: 42  Threshold: 0
+EOF on file 1
+Total symb: 50400000  Blks: 1200000
+Error counts Bits:  201598785  Symbols:   50203343  Blocks:    1200000    >T: 1200000 
+Error rates  Bits:  5.000e-01  Symbols:  9.961e-01  Blocks:  1.000e+00 Bits/block: 167.99899 Symb/block: 41.83612
+"----------------------" 

@@ -88,8 +88,8 @@ std::vector<short> Polinomio::multiplicarPolinomios(std::vector<short> polinomio
         }
         i++;
     }
-    printf("El polinomio multiplicado es:\n");
-    imprimirVectorPol(polMultiplicado);
+    //printf("El polinomio multiplicado es:\n");
+    //imprimirVectorPol(polMultiplicado);
     return polMultiplicado;
 }
 

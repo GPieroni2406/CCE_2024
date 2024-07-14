@@ -7,27 +7,27 @@
 #include <algorithm>
 using namespace std; 
 
-class Polinomio{
-    private: 
-        Calculos calc = Calculos();
-    public:
+    class Polinomio{
+        private: 
+            Calculos calc = Calculos();
+        public:
 
-//Calcula la derivada formal de un polinomio en un campo finito, 
-//que se utiliza en algunos algoritmos de decodificación, como el Algoritmo de Forney para la corrección de errores.
-vector<short> derivarPolinomio(vector<short> poly);
+    //Calcula la derivada del polinomio 
+    vector<short> derivarPolinomio(vector<short> coeficientes);
 
-//Resta dos polinomios p1 y p2. Al igual que con la suma y la resta de elementos individuales, 
-//la resta de polinomios en un campo finito es equivalente a su suma (operación XOR bit a bit de los coeficientes correspondientes).
-std::vector<short> restarPolinomios(vector<short> p1, vector<short> p2); 
+    //Resta dos polinomios p1 y p2. Al igual que con la suma y la resta de elementos individuales, 
+    //la resta de polinomios en un campo finito es equivalente a su suma (operación XOR bit a bit de los coeficientes correspondientes).
+    std::vector<short> restarPolinomios(vector<short> polinomio1, vector<short> polinomio2); 
 
-//Multiplica dos polinomios representados por vectores de coeficientes. 
-//La lógica es similar a la multiplicación de polinomios en matemáticas: 
-//cada término de p1 se multiplica por cada término de p2 y se suman los resultados apropiados.
-vector<short> multiplicarPolinomios(vector<short> p1, vector<short> p2);
+    //Multiplica dos polinomios representados por vectores de coeficientes. 
+    //La lógica es similar a la multiplicación de polinomios en matemáticas: 
+    //cada término de p1 se multiplica por cada término de p2 y se suman los resultados.
+    vector<short> multiplicarPolinomios(vector<short> polinomio1, vector<short> polinomio2);
 
-//Evalúa un polinomio en un punto utilizando el antilogaritmo del valor de i multiplicado por su índice,
-//lo que facilita la evaluación de polinomios en campos finitos.
-short evaluarPolinomio(vector<short> poly, short i);
+    //Evalúa un polinomio en un punto utilizando el antilogaritmo (brindado por los profesores) del valor de i multiplicado por su índice,
+    //lo que facilita la evaluación de polinomios en campos finitos.
+    short evaluarPolinomio(vector<short> coeficientes, short x);
 
-std::pair<std::vector<short>, std::vector<short>> dividirPolinomio(vector<short> numerator, vector<short> denominator);
+    //Divide el polinomio numerador con el denominador.
+    std::pair<std::vector<short>, std::vector<short>> dividirPolinomio(vector<short> numerador, vector<short> denominador);
 };

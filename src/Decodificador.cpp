@@ -24,7 +24,7 @@ vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
     char symbol;
     for (int i = 0; i < simbolos; ++i) {
         if (archivo.read(&symbol, 1)) {
-            std::cout << "Carácter leído: " << symbol << std::endl;
+            //std::cout << "Carácter leído: " << symbol << std::endl;
             // Convertir el byte leído a short y almacenarlo
             datos[i] = static_cast<short>(static_cast<unsigned char>(symbol));
         } else {
@@ -59,7 +59,7 @@ vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n
 
 void Decodificador::incrementoBloque() {
     this->cantBloquesLeidos++;
-    printf("Se leyeron %d bloques\n",cantBloquesLeidos);
+    //printf("Se leyeron %d bloques\n",cantBloquesLeidos);
 }
 
 vector<short> Decodificador::obtenerPolinomioXR() {
@@ -79,11 +79,12 @@ vector<short> Decodificador::leerIndiceBorraduras(ifstream &erasfile) {
 std::vector<std::vector<short>> Decodificador::obtenerMatrizChequeo() {
     std::vector<std::vector<short>> matriz;
     int i = 0;
+    int q_aux = (obtenerQ()-1);
     while (i < this->r) {
         std::vector<short> fila;
         int j = 0;
         while (j < this->n) {
-            fila.push_back(_gfalog[((i + 1) * j) % (obtenerQ()-1)]);
+            fila.push_back(_gfalog[((i + 1) * j) % q_aux]);
             j++;
         }
         matriz.push_back(fila);
@@ -237,7 +238,7 @@ std::vector<short> Decodificador::raicesNoNulas(const std::vector<short> &polino
             short evaluar = pol.evaluarPolinomio(polinomio, contRaices);
             if (evaluar == 0) { //Encontre una raiz
                 cantidadRaices++;
-                printf("raiz encontrada en indices %d\n", contRaices);
+                //printf("raiz encontrada en indices %d\n", contRaices);
                 indices.push_back(contRaices);
             }
             contRaices++;
@@ -245,7 +246,7 @@ std::vector<short> Decodificador::raicesNoNulas(const std::vector<short> &polino
     }
 
     if (cantidadRaices < grado) {
-        printf("Se encontraron menos raices que el grado del polinomio.\n");
+        //printf("Se encontraron menos raices que el grado del polinomio.\n");
         return {};
     }
     return indices;

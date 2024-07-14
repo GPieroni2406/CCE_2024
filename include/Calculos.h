@@ -11,7 +11,9 @@ using namespace std;
 class Calculos{
     public:
         Calculos(){};
-
+        
+        short division(int x, int y);
+        
         short suma(int x, int y);
 
         short resta(int x, int y);     
@@ -20,7 +22,6 @@ class Calculos{
 
         short inv(int num);
 
-        short division(int x, int y);
 };
 
 #endif
