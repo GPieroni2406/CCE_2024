@@ -16,7 +16,7 @@ bool ManejadorDeArchivos::abrirArchivos(const std::string& ruta_simbolos, const 
         return false;
     }
 
-    salida.open(ruta_salida);
+    salida.open(ruta_salida,std::ofstream::binary);
     if (!salida.is_open()) {
         imprimirErrorEspecifico("Error, no se puede abrir el archivo de salida.");
         return false;

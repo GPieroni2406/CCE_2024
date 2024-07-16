@@ -9,13 +9,14 @@
 using namespace std;
 
 void escribirEnArchivo(std::ofstream& salida, const std::vector<short>& vectorDecodificado) {
-    size_t tamanioTotalBytes = vectorDecodificado.size() * sizeof(short);
-    const char* datosEnBytes = reinterpret_cast<const char*>(vectorDecodificado.data());
-    salida.write(datosEnBytes, tamanioTotalBytes);
+    for (const auto& valor : vectorDecodificado) {
+        char caracter = static_cast<char>(valor);
+        salida.put(caracter);
+    }
 }
 
 void imprimirTiempos(std::chrono::seconds secondsDuration, int corregidos, int incorregibles, int correctos, int totales) {
-    printf("Tiempo transcurrido: %lld\n", static_cast<long long>(secondsDuration.count()));
+    printf("Tiempo transcurrido: %lld segundos\n", static_cast<long long>(secondsDuration.count()));
     printf("Incorregibles: %d bloques\n", incorregibles);
     printf("Correctos: %d bloques\n", correctos);
     printf("Corregidos: %d bloques\n", corregidos);
@@ -217,7 +218,7 @@ int main(int argc, char *argv[]) {
     }
     printf("---------------------                  TERMINO LA EJECUCION                         ----------------------\n");
 
-    // Obtener el punto final en el tiempo
+    // Obtener tiempo final
     std::chrono::high_resolution_clock::time_point finReloj = std::chrono::high_resolution_clock::now();
 
     // Calcular la duración en segundos
