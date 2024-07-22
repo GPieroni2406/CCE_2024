@@ -9,24 +9,23 @@ Decodificador::Decodificador(const int &n,const int &q,const int &r) : n(n), q(q
 }
 
 
-vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
+vector<short> Decodificador::leerBloque(ifstream &archivo) {
     // Calcular la cantidad de bytes a leer
-    int simbolos = n; //Cada simbolo es de 1 byte -> n bytes para leer.
+    int simbolos = this->n; //Cada simbolo es de 1 byte -> n bytes para leer.
 
     // Calcular el desplazamiento
-    int desplazamiento = this->cantBloquesLeidos * n;
+    int desplazamiento = (this->cantBloquesLeidos * this->n);
 
     // Mover el puntero de lectura al inicio del bloque deseado
     archivo.seekg(desplazamiento, ios::beg);
 
     // Leer el bloque de datos
-    vector<short> datos(n);
-    char symbol;
+    vector<short> datos(this->n);
+    char simbolo;
     for (int i = 0; i < simbolos; ++i) {
-        if (archivo.read(&symbol, 1)) {
-            //std::cout << "Carácter leído: " << symbol << std::endl;
+        if (archivo.read(&simbolo, 1)) {
             // Convertir el byte leído a short y almacenarlo
-            datos[i] = static_cast<short>(static_cast<unsigned char>(symbol));
+            datos[i] = static_cast<short>(static_cast<unsigned char>(simbolo));
         } else {
             // Si no se pudo leer, devolver un vector vacío
             return {};
@@ -35,11 +34,11 @@ vector<short> Decodificador::leerBloque(ifstream &archivo, const int &n) {
     return datos;
 }
 
-vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n) {
+vector<short> Decodificador::encontrarBorraduras(ifstream &archivo) {
     vector<short> indices;
 
     // Calcular el desplazamiento
-    int desplazamiento = this->cantBloquesLeidos * n;
+    int desplazamiento = this->cantBloquesLeidos * this->n;
 
     // Mover el puntero de lectura al inicio del bloque deseado
     archivo.seekg(desplazamiento, ios::beg);
@@ -47,7 +46,7 @@ vector<short> Decodificador::encontrarBorraduras(ifstream &archivo, const int &n
     char borradura;
 
     // Leer los bytes y buscar los índices de símbolos borrados
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < this->n; ++i) {
         if (archivo.read(&borradura, 1) && borradura == 1) {
             // Si encontramos una borradura, guardamos su posición
             indices.push_back(n-i-1);
@@ -66,14 +65,14 @@ vector<short> Decodificador::obtenerPolinomioXR() {
     return this->polinomio_xr;
 }
 
-vector<short> Decodificador::leerBloqueSimbolos(ifstream &symbolfile) {
+vector<short> Decodificador::leerBloqueSimbolos(ifstream &archivo) {
     // Llamar a la función leerBloque para leer el bloque de símbolos
-    return leerBloque(symbolfile, this->n);
+    return leerBloque(archivo);
 }
 
-vector<short> Decodificador::leerIndiceBorraduras(ifstream &erasfile) {
+vector<short> Decodificador::leerIndiceBorraduras(ifstream &archivo) {
     // Llamar a la función encontrarBorraduras para obtener los índices de símbolos borrados
-    return encontrarBorraduras(erasfile, this->n);
+    return encontrarBorraduras(archivo);
 }
 
 std::vector<std::vector<short>> Decodificador::obtenerMatrizChequeo() {
@@ -138,11 +137,11 @@ bool Decodificador::bloqIncorregible(vector<short> indicesBorrados) {
     // Calcular la cantidad de índices de borrado
     int cantBorrados = (int)indicesBorrados.size();
     int redundancia = this -> r;
-    // Actualizar rho con la cantidad de índices de borrado encontrados
-    this->rho = cantBorrados;
+    // Actualizar borrados con la cantidad de índices de borrado encontrados
+    this->borrados = cantBorrados;
 
     // Determinar si el bloque es incorregible basándose en el límite
-    bool bloqueIncorregible = (this->rho > redundancia);
+    bool bloqueIncorregible = (this->borrados > redundancia);
 
     // Devolver el resultado
     return bloqueIncorregible;
@@ -157,8 +156,8 @@ std::pair<std::vector<short>, std::vector<short>> Decodificador::a_e_extendido(c
 
     //obtengo valores
     int redundancia = this->obtenerRedundancia();
-    int ro = this->obtenerRho();
-    double fin = static_cast<double>(redundancia + ro) / 2.0;
+    int borrados = this->obtenerBorrados();
+    double fin = static_cast<double>(borrados + redundancia)/2;
 
     //Core del algoritmo euclides extendido
     for (; !(r1.size() - 1 < fin && fin <= r0.size() - 1); ) {
@@ -228,27 +227,28 @@ vector<short> Decodificador::obtenerPolinomioLocalizador(const vector<short> &po
 }
 
 std::vector<short> Decodificador::raicesNoNulas(const std::vector<short> &polinomio) {
-    std::vector<short> indices = {};
     int cantidadRaices = 0;
+    std::vector<short> indices = {};
+
     int grado = static_cast<int>(polinomio.size()) - 1;
+    
     int contRaices = 1;
 
-    if (!polinomio.empty()) {
+    if (polinomio.size()>0) {
         while (contRaices < obtenerQ() && cantidadRaices < grado) {
             short evaluar = pol.evaluarPolinomio(polinomio, contRaices);
             if (evaluar == 0) { //Encontre una raiz
                 cantidadRaices++;
-                //printf("raiz encontrada en indices %d\n", contRaices);
                 indices.push_back(contRaices);
             }
             contRaices++;
         }
     }
 
-    if (cantidadRaices < grado) {
-        //printf("Se encontraron menos raices que el grado del polinomio.\n");
+    if (cantidadRaices != grado) {
         return {};
     }
+    
     return indices;
 }
 

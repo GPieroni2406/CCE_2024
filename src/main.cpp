@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     //Obtengo matriz chequeo de paridad
     vector<vector<short>> matrizParidad = deco.obtenerMatrizChequeo();
 
-    //Obtengo simbolos y borraduras.
+    //Obtengo simbolos y borraduras
     ifstream &simbolos = archivos.obtener_simbolo();
 
     //Leeo el primer bloque para entrar al while
@@ -141,18 +141,15 @@ int main(int argc, char *argv[]) {
     
     while (!y.empty()) {
         vector<short> vector_decodificado = y;
-        //printf("Este es el vector y que llego:\n");
-        //imprimirVector(y);
+
         vector<short> indiceBorraduras = deco.leerIndiceBorraduras(borraduras);
-        //printf("Estas son las posiciones con borraduras en el bloque actual:\n");
-        //imprimirIndices(indiceBorraduras);
+
         if (incorregible(indiceBorraduras, deco)) {
             incorregibles++;
         } 
         else {
             vector<short> sindrome = calcularSindrome(y, matrizParidad, deco);
-            //printf("Este es el sindrome:\n");
-            //imprimirVector(sindrome);
+
             
             //Si el sindrome esta vacio gane, no hay errores!
             if(sindrome.empty()){
@@ -160,40 +157,28 @@ int main(int argc, char *argv[]) {
             }
             else{ //Verifico errores .
                 vector<short> localizador_borraduras = deco.calcularPolBorraduras(indiceBorraduras);
-                //printf("Este es el Polinomio de Borraduras:\n");
-                //imprimirVector(localizador_borraduras);
 
-                vector<short> modifiedSindrome = deco.calcularSindromeModificado(sindrome, localizador_borraduras);
-                //printf("Este es el Sindrome Modificado:\n");
-                //imprimirVector(modifiedSindrome);
-                //printf("Este es el polinomio XR:\n");
-                //imprimirVector(deco.obtenerPolinomioXR());
-                pair<vector<short>, vector<short>> res = deco.a_e_extendido(deco.obtenerPolinomioXR(),modifiedSindrome);
+
+                vector<short> sindrome_modificado = deco.calcularSindromeModificado(sindrome, localizador_borraduras);
+
+                pair<vector<short>, vector<short>> res = deco.a_e_extendido(deco.obtenerPolinomioXR(),sindrome_modificado);
 
                 vector<short> localizador_errores = res.first;
-                //printf("Este es el polinomio delta:\n");
-                //imprimirVector(localizador_errores);
-                
+
                 vector<short> evaluador_errores = res.second;
-                //printf("Este es el polinomio gama:\n");
-                //imprimirVector(evaluador_errores);
 
-                localizador_errores = deco.obtenerPolinomioLocalizador(localizador_borraduras, localizador_errores);
-                //printf("Este es el polinomio delta modificado:\n");
-                //imprimirVector(localizador_errores);
+                vector<short> localizador_errores_modificado = deco.obtenerPolinomioLocalizador(localizador_borraduras, localizador_errores);
 
-                vector<short> indices_raices = deco.raicesNoNulas(localizador_errores);
+                vector<short> indices_raices = deco.raicesNoNulas(localizador_errores_modificado);
 
                 if (indices_raices.size()>0) {
                     //Aplico Forneys.       
-                    auto error = deco.algoritmo_f(evaluador_errores,indices_raices, localizador_errores);
+                    auto error = deco.algoritmo_f(evaluador_errores,indices_raices, localizador_errores_modificado);
 
                     if (error.first.size() > 0 && error.second.size() > 0) {
                         vector<short> errores = error.first; //Valores de los errores
                         vector<short> ubicacion_errores = error.second; //Ubicacion de los errores
                         vector_decodificado = deco.decodificar(y,errores,ubicacion_errores);
-                        //printf("Este es el vector y decodificado:\n");
-                        //imprimirVector(vector_decodificado);
                         corregidos++;
                     } else {//Bloque Incorregible!!!
                         incorregibles++;

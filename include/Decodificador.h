@@ -9,7 +9,7 @@ using namespace std;
 class Decodificador {
 private: 
     int q, n, r;
-    int rho;
+    int borrados;
     int cantBloquesLeidos;
     vector<short> polinomio_xr;
     Calculos calc = Calculos();
@@ -20,25 +20,23 @@ public:
     Decodificador(const int &n,const int &q,const int &r);
 
     // Métodos para lectura de datos
-    vector<short> leerBloque(ifstream &symbolfile, const int &n);
-    vector<short> encontrarBorraduras(ifstream &erasfile, const int &n);
-    vector<short> leerBloqueSimbolos(ifstream &symbolfile);
-    vector<short> leerIndiceBorraduras(ifstream &erasfile);
+    vector<short> leerBloque(ifstream &archivo);
+    vector<short> encontrarBorraduras(ifstream &archivo);
+    vector<short> leerBloqueSimbolos(ifstream &archivo);
+    vector<short> leerIndiceBorraduras(ifstream &archivo);
 
     // Métodos de inicialización y gestión de estado
     void incrementoBloque();
     vector<short> obtenerPolinomioXR();
-        // Método para obtener el valor de 'r'
     int obtenerRedundancia() const {
         return this->r;
     }
 
-    // Método para obtener el valor de 'rho'
-    int obtenerRho() const {
-        return this->rho;
+
+    int obtenerBorrados() const {
+        return this->borrados;
     }
 
-    // Método para obtener el valor de 'rho'
     int obtenerQ() const {
         return this->q;
     }

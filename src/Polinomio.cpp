@@ -10,11 +10,10 @@ void imprimirVectorPol(const vector<short> &vec) {
 std::pair<std::vector<short>, std::vector<short>> Polinomio::dividirPolinomio(std::vector<short> numerador, std::vector<short> denominador) {
     std::vector<short> cociente, residuo;
     for (; !denominador.empty() && denominador.back() == 0; denominador.pop_back()) {
-        // No se necesita cuerpo en el bucle for.
     }
 
     if (denominador.empty()) {
-        std::cerr << "Problems con la división entre cero!" << std::endl;
+        std::cerr << "Problemas con la división entre cero!" << std::endl;
 
     }
     else{
@@ -88,8 +87,6 @@ std::vector<short> Polinomio::multiplicarPolinomios(std::vector<short> polinomio
         }
         i++;
     }
-    //printf("El polinomio multiplicado es:\n");
-    //imprimirVectorPol(polMultiplicado);
     return polMultiplicado;
 }
 

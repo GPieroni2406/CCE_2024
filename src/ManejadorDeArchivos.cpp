@@ -90,7 +90,7 @@ bool ManejadorDeArchivos::procesarArgumentos(int &n, int &r, std::string &archiv
 
     // Verificar que todos los indicadores necesarios estén presentes y sean válidos
     if (!bandera_tamanio || !bandera_redundancia || !bandera_simbolo || !bandera_Borradura || !bandera_salida || n >= q || r < 0 || n <= 0 || n <= r) {
-        imprimirErrorEspecifico("Error en los argumentos proporcionados.");
+        imprimirErrorEspecifico("Error en los argumentos proporcionados. Recuerde que n debe ser mayor a 0, la redundancia r no puede ser negativa ni menor que n, y n debe ser menor a q (256). ");
         return false;
     }
 
