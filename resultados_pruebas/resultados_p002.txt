@@ -1,5 +1,5 @@
 ---------------------                  TERMINO LA EJECUCION                         ----------------------
-Tiempo transcurrido: 104segundos
+Tiempo transcurrido: 85 segundos
 Incorregibles: 49 bloques
 Correctos: 398786 bloques
 Corregidos: 651165 bloques
@@ -12,7 +12,7 @@ Error counts Bits:    3535422  Symbols:     880272  Blocks:     600006    >T: 60
 Error rates  Bits:  1.002e-02  Symbols:  1.996e-02  Blocks:  5.714e-01 Bits/block: 3.36707 Symb/block: 0.83835
 "----------------------" 
 ---------------------                  TERMINO LA EJECUCION                         ----------------------
-Tiempo transcurrido: 119 segundos
+Tiempo transcurrido: 113 segundos
 Incorregibles: 44 bloques
 Correctos: 397004 bloques
 Corregidos: 652952 bloques
@@ -25,7 +25,7 @@ Error counts Bits:    3549450  Symbols:     883611  Blocks:     601656    >T: 60
 Error rates  Bits:  1.006e-02  Symbols:  2.004e-02  Blocks:  5.730e-01 Bits/block: 3.38043 Symb/block: 0.84153
 "----------------------" 
 ---------------------                  TERMINO LA EJECUCION                         ----------------------
-Tiempo transcurrido: 127 segundos
+Tiempo transcurrido: 110 segundos
 Incorregibles: 54 bloques
 Correctos: 379872 bloques
 Corregidos: 670074 bloques
@@ -38,7 +38,7 @@ Error counts Bits:    3708044  Symbols:     923259  Blocks:     618582    >T: 61
 Error rates  Bits:  1.051e-02  Symbols:  2.094e-02  Blocks:  5.891e-01 Bits/block: 3.53147 Symb/block: 0.87929
 "----------------------" 
 ---------------------                  TERMINO LA EJECUCION                         ----------------------
-Tiempo transcurrido: 148 segundos
+Tiempo transcurrido: 102 segundos
 Incorregibles: 4116 bloques
 Correctos: 244367 bloques
 Corregidos: 801517 bloques
@@ -51,7 +51,7 @@ Error counts Bits:    5301554  Symbols:    1319971  Blocks:     756883    >T: 75
 Error rates  Bits:  1.503e-02  Symbols:  2.993e-02  Blocks:  7.208e-01 Bits/block: 5.04910 Symb/block: 1.25712
 "----------------------" 
 ---------------------                  TERMINO LA EJECUCION                         ----------------------
-Tiempo transcurrido: 208 segundos
+Tiempo transcurrido: 149 segundos
 Incorregibles: 502602 bloques
 Correctos: 2261 bloques
 Corregidos: 545137 bloques

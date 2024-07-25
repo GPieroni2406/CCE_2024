@@ -21,7 +21,7 @@ reechannel -q 256 -n {largo_del_codigo} --delta {prob_de_errores_en_simbolos} --
 Dentro de la carpeta "src" se deja el programa compilado. En particular se utilizó el siguiente comando para compilarlo en Windows:
 
 ```bash
-g++ -o rsdecode main.cpp Decodificador.cpp ManejadorDeArchivos.cpp gf256.cpp Calculos.cpp Polinomio.cpp -std=c++11
+g++ -O3 -o rsdecode main.cpp Decodificador.cpp ManejadorDeArchivos.cpp gf256.cpp Calculos.cpp Polinomio.cpp -std=c++11
 ```
 
 ### Ejecución del Programa
