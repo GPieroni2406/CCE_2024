@@ -1,3 +1,0 @@
-g++ -o rsdecode main.cpp Decodificador.cpp ManejadorDeArchivos.cpp gf256.cpp Calculos.cpp Polinomio.cpp -std=c++11
-
-rsdecode -n 48 -r 6 -s ..\simb_borr\simbolos.ech -e ..\simb_borr\simbolos.eras -o ..\salidas\salida.dat >> ..\resultados_pruebas\resultados.txt

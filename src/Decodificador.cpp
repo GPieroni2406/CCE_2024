@@ -8,6 +8,27 @@ Decodificador::Decodificador(const int &n,const int &q,const int &r) : n(n), q(q
     polinomio_xr[r] = 1; // Establecer el último elemento a 1.
 }
 
+vector<short> Decodificador::encontrarBorraduras(ifstream &archivo) {
+    vector<short> indices;
+
+    // Calcular el desplazamiento
+    int desplazamiento = this->cantBloquesLeidos * this->n;
+
+    // Mover el puntero de lectura al inicio del bloque deseado
+    archivo.seekg(desplazamiento, ios::beg);
+
+    char borradura;
+
+    // Leer los bytes y buscar los índices de símbolos borrados
+    for (int i = 0; i < this->n; ++i) {
+        if (archivo.read(&borradura, 1) && borradura == 1) {
+            // Si encontramos una borradura, guardamos su posición
+            indices.push_back(n-i-1);
+        }
+    }
+
+    return indices;
+}
 
 vector<short> Decodificador::leerBloque(ifstream &archivo) {
     // Calcular la cantidad de bytes a leer
@@ -34,27 +55,6 @@ vector<short> Decodificador::leerBloque(ifstream &archivo) {
     return datos;
 }
 
-vector<short> Decodificador::encontrarBorraduras(ifstream &archivo) {
-    vector<short> indices;
-
-    // Calcular el desplazamiento
-    int desplazamiento = this->cantBloquesLeidos * this->n;
-
-    // Mover el puntero de lectura al inicio del bloque deseado
-    archivo.seekg(desplazamiento, ios::beg);
-
-    char borradura;
-
-    // Leer los bytes y buscar los índices de símbolos borrados
-    for (int i = 0; i < this->n; ++i) {
-        if (archivo.read(&borradura, 1) && borradura == 1) {
-            // Si encontramos una borradura, guardamos su posición
-            indices.push_back(n-i-1);
-        }
-    }
-
-    return indices;
-}
 
 void Decodificador::incrementoBloque() {
     this->cantBloquesLeidos++;

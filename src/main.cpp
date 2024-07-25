@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
             }
             else{ //Verifico errores .
                 vector<short> localizador_borraduras = deco.calcularPolBorraduras(indiceBorraduras);
-
+                
 
                 vector<short> sindrome_modificado = deco.calcularSindromeModificado(sindrome, localizador_borraduras);
 
